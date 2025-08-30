@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 页面编号: C-07 /admin/user-management -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - 酒店管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <style>
+        :root {
+            --primary: #0F62FE;
+            --secondary: #FF6B00;
+            --bg: #F5F7FA;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-[system-ui]" x-data="userManagementApp()">
+<div class="min-h-screen flex">
+    <!-- 侧边栏（复用） -->
+    <aside class="w-64 bg-white shadow-lg">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="uil uil-building mr-2 text-blue-600"></i>
+                酒店管理系统
+            </h1>
+        </div>
+        <nav class="mt-6">
+            <a href="#" @click="navigateTo('dashboard')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-dashboard mr-3"></i>
+                仪表板
+            </a>
+            <a href="#" @click="navigateTo('menu-config')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-list-ul mr-3"></i>
+                菜单配置
+            </a>
+            <a href="#" class="flex items-center px-6 py-3 bg-blue-50 text-blue-600 border-r-4 border-blue-600">
+                <i class="uil uil-users-alt mr-3"></i>
+                用户管理
+            </a>
+            <a href="#" @click="navigateTo('system-settings')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-setting mr-3"></i>
+                系统设置
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 p-8">
+        <!-- 顶部标题 -->
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">用户管理</h2>
+                <p class="text-gray-600 mt-2">管理员工账号、角色权限和部门结构</p>
+            </div>
+            <button
+                    @click="openAddUserModal"
+                    data-testid="add-user-button"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+            >
+                <i class="uil uil-plus mr-2"></i>
+                添加用户
+            </button>
+        </div>
+
+        <!-- 标签页 -->
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex">
+                    <button
+                            @click="activeTab = 'users'"
+                            :class="activeTab === 'users' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'"
+                            class="px-6 py-3 font-medium hover:text-gray-800"
+                    >
+                        用户列表
+                        <span class="ml-2 bg-gray-100 px-2 py-0.5 rounded-full text-xs" x-text="users.length"></span>
+                    </button>
+                    <button
+                            @click="activeTab = 'roles'"
+                            :class="activeTab === 'roles' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'"
+                            class="px-6 py-3 font-medium hover:text-gray-800"
+                    >
+                        角色管理
+                        <span class="ml-2 bg-gray-100 px-2 py-0.5 rounded-full text-xs" x-text="roles.length"></span>
+                    </button>
+                    <button
+                            @click="activeTab = 'departments'"
+                            :class="activeTab === 'departments' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'"
+                            class="px-6 py-3 font-medium hover:text-gray-800"
+                    >
+                        部门管理
+                        <span class="ml-2 bg-gray-100 px-2 py-0.5 rounded-full text-xs" x-text="departments.length"></span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 用户列表 -->
+        <div x-show="activeTab === 'users'" class="bg-white rounded-lg shadow">
+            <!-- 搜索和筛选 -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-1">
+                        <input
+                                type="text"
+                                x-model="searchQuery"
+                                placeholder="搜索用户名、姓名或工号..."
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                    </div>
+                    <select
+                            x-model="filterDepartment"
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="">所有部门</option>
+                        <template x-for="dept in departments" :key="dept.id">
+                            <option :value="dept.id" x-text="dept.name"></option>
+                        </template>
+                    </select>
+                    <select
+                            x-model="filterStatus"
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="">所有状态</option>
+                        <option value="active">启用</option>
+                        <option value="inactive">禁用</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 用户表格 -->
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                        <tr class="text-left text-sm text-gray-600 border-b">
+                            <th class="pb-3 font-medium">用户信息</th>
+                            <th class="pb-3 font-medium">角色</th>
+                            <th class="pb-3 font-medium">部门</th>
+                            <th class="pb-3 font-medium">状态</th>
+                            <th class="pb-3 font-medium">最后登录</th>
+                            <th class="pb-3 font-medium">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                        <template x-for="user in filteredUsers" :key="user.id">
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-4">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-gray-600 font-medium" x-text="user.name.charAt(0)"></span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-800" x-text="user.name"></p>
+                                            <p class="text-gray-500">
+                                                <span x-text="user.username"></span> ·
+                                                <span x-text="user.employeeId"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4">
+                                            <span
+                                                    :class="{
+                                                    'bg-purple-100 text-purple-600': user.role === 'admin',
+                                                    'bg-blue-100 text-blue-600': user.role === 'agent',
+                                                    'bg-green-100 text-green-600': user.role === 'staff'
+                                                }"
+                                                    class="px-2 py-1 rounded text-xs font-medium"
+                                                    x-text="getRoleName(user.role)"
+                                            ></span>
+                                </td>
+                                <td class="py-4 text-gray-600" x-text="user.department"></td>
+                                <td class="py-4">
+                                            <span
+                                                    :class="user.status === 'active' ? 'text-green-600' : 'text-gray-400'"
+                                                    class="flex items-center"
+                                            >
+                                                <i :class="user.status === 'active' ? 'uil-check-circle' : 'uil-times-circle'" class="uil mr-1"></i>
+                                                <span x-text="user.status === 'active' ? '启用' : '禁用'"></span>
+                                            </span>
+                                </td>
+                                <td class="py-4 text-gray-600" x-text="user.lastLogin"></td>
+                                <td class="py-4">
+                                    <div class="flex items-center space-x-2">
+                                        <button
+                                                @click="editUser(user)"
+                                                class="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                        >
+                                            <i class="uil uil-edit"></i>
+                                        </button>
+                                        <button
+                                                @click="toggleUserStatus(user)"
+                                                class="p-1 hover:bg-gray-50 rounded"
+                                                :class="user.status === 'active' ? 'text-orange-600' : 'text-green-600'"
+                                        >
+                                            <i :class="user.status === 'active' ? 'uil-lock' : 'uil-unlock'" class="uil"></i>
+                                        </button>
+                                        <button
+                                                @click="deleteUser(user)"
+                                                class="p-1 text-red-600 hover:bg-red-50 rounded"
+                                        >
+                                            <i class="uil uil-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 角色管理 -->
+        <div x-show="activeTab === 'roles'" class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-800">角色列表</h3>
+                <button
+                        @click="openAddRoleModal"
+                        class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                >
+                    添加角色
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="role in roles" :key="role.id">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-medium text-gray-800" x-text="role.name"></h4>
+                                <span class="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600">
+                                        <span x-text="role.userCount"></span> 用户
+                                    </span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-4" x-text="role.description"></p>
+                            <div class="space-y-1">
+                                <p class="text-xs font-medium text-gray-700 mb-1">权限:</p>
+                                <template x-for="permission in role.permissions.slice(0, 3)" :key="permission">
+                                    <p class="text-xs text-gray-500">• <span x-text="permission"></span></p>
+                                </template>
+                                <p x-show="role.permissions.length > 3" class="text-xs text-blue-600">
+                                    +<span x-text="role.permissions.length - 3"></span> 更多
+                                </p>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <button class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                                <button class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- 部门管理 -->
+        <div x-show="activeTab === 'departments'" class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-800">部门结构</h3>
+                <button
+                        @click="openAddDepartmentModal"
+                        class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                >
+                    添加部门
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="space-y-2">
+                    <template x-for="dept in departments" :key="dept.id">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="uil uil-folder text-gray-400 mr-3 text-xl"></i>
+                                    <div>
+                                        <h4 class="font-medium text-gray-800" x-text="dept.name"></h4>
+                                        <p class="text-sm text-gray-600">
+                                            负责人: <span x-text="dept.manager"></span> ·
+                                            <span x-text="dept.memberCount"></span> 名成员
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                                        <i class="uil uil-edit"></i>
+                                    </button>
+                                    <button class="p-1 text-red-600 hover:bg-red-50 rounded">
+                                        <i class="uil uil-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- 添加/编辑用户模态框 -->
+<div x-show="showUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-cloak>
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4" x-text="editingUser ? '编辑用户' : '添加用户'"></h3>
+
+        <form @submit.prevent="saveUser" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                <input
+                        type="text"
+                        x-model="userForm.name"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                <input
+                        type="text"
+                        x-model="userForm.username"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">工号</label>
+                <input
+                        type="text"
+                        x-model="userForm.employeeId"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">角色</label>
+                <select
+                        x-model="userForm.role"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">请选择</option>
+                    <template x-for="role in roles" :key="role.id">
+                        <option :value="role.id" x-text="role.name"></option>
+                    </template>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">部门</label>
+                <select
+                        x-model="userForm.department"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">请选择</option>
+                    <template x-for="dept in departments" :key="dept.id">
+                        <option :value="dept.id" x-text="dept.name"></option>
+                    </template>
+                </select>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <button
+                        type="button"
+                        @click="closeUserModal"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                >
+                    取消
+                </button>
+                <button
+                        type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Mock数据
+    const MOCK_USERS = [
+        { id: 1, name: '张三', username: 'zhangsan', employeeId: 'E001', role: 'admin', department: '管理部', status: 'active', lastLogin: '2024-01-01 10:30' },
+        { id: 2, name: '李四', username: 'lisi', employeeId: 'E002', role: 'agent', department: '前台', status: 'active', lastLogin: '2024-01-01 09:15' },
+        { id: 3, name: '王五', username: 'wangwu', employeeId: 'E003', role: 'staff', department: '客房部', status: 'active', lastLogin: '2024-01-01 08:45' },
+        { id: 4, name: '赵六', username: 'zhaoliu', employeeId: 'E004', role: 'staff', department: '餐饮部', status: 'inactive', lastLogin: '2023-12-30 18:00' }
+    ];
+
+    const MOCK_ROLES = [
+        { id: 'admin', name: '超级管理员', description: '拥有系统所有权限', userCount: 2, permissions: ['用户管理', '系统设置', '数据导出', '所有功能'] },
+        { id: 'agent', name: '前台客服', description: '处理客人会话和工单', userCount: 5, permissions: ['会话管理', '工单创建', '查看报表'] },
+        { id: 'staff', name: '部门员工', description: '处理分配的工单任务', userCount: 12, permissions: ['工单处理', '任务更新'] }
+    ];
+
+    const MOCK_DEPARTMENTS = [
+        { id: 1, name: '管理部', manager: '总经理', memberCount: 3 },
+        { id: 2, name: '前台', manager: '张三', memberCount: 5 },
+        { id: 3, name: '客房部', manager: '李四', memberCount: 8 },
+        { id: 4, name: '餐饮部', manager: '王五', memberCount: 6 }
+    ];
+
+    function userManagementApp() {
+        return {
+            activeTab: 'users',
+            users: [...MOCK_USERS],
+            roles: [...MOCK_ROLES],
+            departments: [...MOCK_DEPARTMENTS],
+            searchQuery: '',
+            filterDepartment: '',
+            filterStatus: '',
+            showUserModal: false,
+            editingUser: null,
+            userForm: {
+                name: '',
+                username: '',
+                employeeId: '',
+                role: '',
+                department: ''
+            },
+
+            get filteredUsers() {
+                let filtered = this.users;
+
+                if (this.searchQuery) {
+                    const query = this.searchQuery.toLowerCase();
+                    filtered = filtered.filter(user =>
+                        user.name.toLowerCase().includes(query) ||
+                        user.username.toLowerCase().includes(query) ||
+                        user.employeeId.toLowerCase().includes(query)
+                    );
+                }
+
+                if (this.filterDepartment) {
+                    filtered = filtered.filter(user => user.department === this.filterDepartment);
+                }
+
+                if (this.filterStatus) {
+                    filtered = filtered.filter(user => user.status === this.filterStatus);
+                }
+
+                return filtered;
+            },
+
+            getRoleName(roleId) {
+                const roleNames = {
+                    'admin': '超级管理员',
+                    'agent': '前台客服',
+                    'staff': '部门员工'
+                };
+                return roleNames[roleId] || roleId;
+            },
+
+            openAddUserModal() {
+                this.editingUser = null;
+                this.userForm = {
+                    name: '',
+                    username: '',
+                    employeeId: '',
+                    role: '',
+                    department: ''
+                };
+                this.showUserModal = true;
+            },
+
+            editUser(user) {
+                this.editingUser = user;
+                this.userForm = { ...user };
+                this.showUserModal = true;
+            },
+
+            closeUserModal() {
+                this.showUserModal = false;
+                this.editingUser = null;
+            },
+
+            saveUser() {
+                if (this.editingUser) {
+                    // 更新用户
+                    console.log('PUT /admin/users/' + this.editingUser.id, this.userForm);
+                } else {
+                    // 创建用户
+                    console.log('POST /admin/users', this.userForm);
+                }
+                alert('用户信息已保存');
+                this.closeUserModal();
+            },
+
+            toggleUserStatus(user) {
+                user.status = user.status === 'active' ? 'inactive' : 'active';
+                console.log('PATCH /admin/users/' + user.id, { status: user.status });
+            },
+
+            deleteUser(user) {
+                if (confirm(`确定要删除用户 ${user.name} 吗？`)) {
+                    this.users = this.users.filter(u => u.id !== user.id);
+                    console.log('DELETE /admin/users/' + user.id);
+                }
+            },
+
+            openAddRoleModal() {
+                alert('添加角色功能开发中...');
+            },
+
+            openAddDepartmentModal() {
+                alert('添加部门功能开发中...');
+            },
+
+            navigateTo(page) {
+                console.log(`跳转到 /admin/${page}`);
+                const pageMap = {
+                    'menu-config': 'C-03-menu-config.html',
+                    'user-management': 'C-07-user-management.html',
+                    'system-settings': 'C-08-system-settings.html',
+                    'dashboard': 'C-01-dashboard.html'
+                };
+                window.location.href = pageMap[page] || 'C-01-dashboard.html';
+            }
+        };
+    }
+</script>
+</body>
+</html>

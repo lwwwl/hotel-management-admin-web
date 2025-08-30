@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 页面编号: C-01 /admin/dashboard -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营仪表板 - 酒店管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <style>
+        :root {
+            --primary: #0F62FE;
+            --secondary: #FF6B00;
+            --bg: #F5F7FA;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-[system-ui]" x-data="dashboardApp()">
+<div class="min-h-screen flex">
+    <!-- 侧边栏 -->
+    <aside class="w-64 bg-white shadow-lg">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="uil uil-building mr-2 text-blue-600"></i>
+                酒店管理系统
+            </h1>
+        </div>
+        <nav class="mt-6">
+            <a href="#" class="flex items-center px-6 py-3 bg-blue-50 text-blue-600 border-r-4 border-blue-600">
+                <i class="uil uil-dashboard mr-3"></i>
+                仪表板
+            </a>
+            <a href="#" @click="navigateTo('menu-config')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-list-ul mr-3"></i>
+                菜单配置
+            </a>
+            <a href="#" @click="navigateTo('user-management')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-users-alt mr-3"></i>
+                用户管理
+            </a>
+            <a href="#" @click="navigateTo('system-settings')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-setting mr-3"></i>
+                系统设置
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 p-8">
+        <!-- 顶部标题 -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">运营仪表板</h2>
+            <p class="text-gray-600 mt-2">实时监控酒店客服系统运营状态</p>
+        </div>
+
+        <!-- KPI 卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- 今日会话 -->
+            <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" @click="filterBy('conversations')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="uil uil-comments text-blue-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-green-600 font-medium">
+                            <i class="uil uil-arrow-up text-xs"></i> 12.5%
+                        </span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800" x-text="kpi.conversations"></h3>
+                <p class="text-sm text-gray-600 mt-1">今日会话</p>
+            </div>
+
+            <!-- 活跃工单 -->
+            <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" @click="filterBy('tasks')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="uil uil-clipboard-notes text-orange-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-red-600 font-medium">
+                            <i class="uil uil-arrow-down text-xs"></i> 3.2%
+                        </span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800" x-text="kpi.activeTasks"></h3>
+                <p class="text-sm text-gray-600 mt-1">活跃工单</p>
+            </div>
+
+            <!-- 平均响应时间 -->
+            <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" @click="filterBy('response')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="uil uil-clock text-green-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-green-600 font-medium">
+                            <i class="uil uil-arrow-up text-xs"></i> 优秀
+                        </span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800" x-text="kpi.avgResponseTime"></h3>
+                <p class="text-sm text-gray-600 mt-1">平均响应时间</p>
+            </div>
+
+            <!-- SLA达成率 -->
+            <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" @click="goToSLA()">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="uil uil-award text-purple-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-gray-600 font-medium">
+                            本月
+                        </span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800" x-text="kpi.slaRate + '%'"></h3>
+                <p class="text-sm text-gray-600 mt-1">SLA达成率</p>
+            </div>
+        </div>
+
+        <!-- 最近告警 -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">最近告警</h3>
+                <button
+                        @click="refreshAlerts"
+                        data-testid="refresh-alerts"
+                        class="text-sm text-blue-600 hover:text-blue-700"
+                >
+                    <i class="uil uil-refresh mr-1"></i>
+                    刷新
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                        <tr class="text-left text-sm text-gray-600">
+                            <th class="pb-3 font-medium">级别</th>
+                            <th class="pb-3 font-medium">时间</th>
+                            <th class="pb-3 font-medium">类型</th>
+                            <th class="pb-3 font-medium">描述</th>
+                            <th class="pb-3 font-medium">状态</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                        <template x-for="alert in alerts" :key="alert.id">
+                            <tr class="border-t border-gray-100 hover:bg-gray-50">
+                                <td class="py-3">
+                                            <span
+                                                    :class="{
+                                                    'bg-red-100 text-red-600': alert.level === 'critical',
+                                                    'bg-orange-100 text-orange-600': alert.level === 'warning',
+                                                    'bg-blue-100 text-blue-600': alert.level === 'info'
+                                                }"
+                                                    class="px-2 py-1 rounded text-xs font-medium"
+                                                    x-text="getLevelText(alert.level)"
+                                            ></span>
+                                </td>
+                                <td class="py-3 text-gray-600" x-text="alert.time"></td>
+                                <td class="py-3 text-gray-800" x-text="alert.type"></td>
+                                <td class="py-3 text-gray-800" x-text="alert.description"></td>
+                                <td class="py-3">
+                                            <span
+                                                    :class="alert.resolved ? 'text-green-600' : 'text-orange-600'"
+                                                    class="flex items-center text-sm"
+                                            >
+                                                <i :class="alert.resolved ? 'uil-check-circle' : 'uil-exclamation-circle'" class="uil mr-1"></i>
+                                                <span x-text="alert.resolved ? '已解决' : '待处理'"></span>
+                                            </span>
+                                </td>
+                            </tr>
+                        </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Mock数据
+    const MOCK_ALERTS = [
+        { id: 1, level: 'critical', time: '10:45', type: 'SLA违规', description: '房间305工单超时15分钟未处理', resolved: false },
+        { id: 2, level: 'warning', time: '10:30', type: '响应延迟', description: 'Webhook响应时间超过3秒', resolved: true },
+        { id: 3, level: 'info', time: '10:15', type: '翻译限额', description: '本月翻译字符使用已达80%', resolved: false },
+        { id: 4, level: 'warning', time: '09:50', type: '并发高峰', description: '当前在线会话数达到85个', resolved: true },
+        { id: 5, level: 'critical', time: '09:30', type: '服务异常', description: 'Kanboard API连接失败', resolved: true }
+    ];
+
+    function dashboardApp() {
+        return {
+            kpi: {
+                conversations: 156,
+                activeTasks: 42,
+                avgResponseTime: '2.3分钟',
+                slaRate: 96.5
+            },
+            alerts: [...MOCK_ALERTS],
+
+            getLevelText(level) {
+                const levels = {
+                    'critical': '严重',
+                    'warning': '警告',
+                    'info': '信息'
+                };
+                return levels[level] || level;
+            },
+
+            filterBy(metric) {
+                console.log('筛选指标:', metric);
+                alert(`显示 ${metric} 详细数据`);
+            },
+
+            goToSLA() {
+                console.log('跳转到 /admin/sla-board');
+                window.location.href = 'C-05-sla-board.html';
+            },
+
+            refreshAlerts() {
+                console.log('刷新告警列表');
+                // 模拟 API 调用: GET /admin/metrics/summary
+                this.alerts = [...MOCK_ALERTS].sort(() => Math.random() - 0.5);
+                alert('告警列表已刷新');
+            },
+
+            navigateTo(page) {
+                console.log(`跳转到 /admin/${page}`);
+                const pageMap = {
+                    'menu-config': 'C-03-menu-config.html',
+                    'user-management': 'C-07-user-management.html',
+                    'system-settings': 'C-08-system-settings.html',
+                    'dashboard': 'C-01-dashboard.html'
+                };
+                window.location.href = pageMap[page] || 'C-01-dashboard.html';
+            }
+        };
+    }
+</script>
+</body>
+</html>

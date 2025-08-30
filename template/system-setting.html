@@ -1,0 +1,805 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 页面编号: C-08 /admin/system-settings -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 酒店管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <style>
+        :root {
+            --primary: #0F62FE;
+            --secondary: #FF6B00;
+            --bg: #F5F7FA;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-[system-ui]" x-data="systemSettingsApp()">
+<div class="min-h-screen flex">
+    <!-- 侧边栏（复用） -->
+    <aside class="w-64 bg-white shadow-lg">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="uil uil-building mr-2 text-blue-600"></i>
+                酒店管理系统
+            </h1>
+        </div>
+        <nav class="mt-6">
+            <a href="#" @click="navigateTo('dashboard')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-dashboard mr-3"></i>
+                仪表板
+            </a>
+            <a href="#" @click="navigateTo('menu-config')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-list-ul mr-3"></i>
+                菜单配置
+            </a>
+            <a href="#" @click="navigateTo('user-management')" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50">
+                <i class="uil uil-users-alt mr-3"></i>
+                用户管理
+            </a>
+            <a href="#" class="flex items-center px-6 py-3 bg-blue-50 text-blue-600 border-r-4 border-blue-600">
+                <i class="uil uil-setting mr-3"></i>
+                系统设置
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 p-8">
+        <!-- 顶部标题 -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">系统设置</h2>
+            <p class="text-gray-600 mt-2">配置系统集成和基础设置</p>
+        </div>
+
+        <!-- 设置分类 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 左侧菜单 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow">
+                    <nav class="p-4">
+                        <button
+                                @click="activeSection = 'general'"
+                                :class="activeSection === 'general' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 rounded-lg mb-2 flex items-center"
+                        >
+                            <i class="uil uil-cog mr-3"></i>
+                            常规设置
+                        </button>
+                        <button
+                                @click="activeSection = 'pms'"
+                                :class="activeSection === 'pms' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 rounded-lg mb-2 flex items-center"
+                        >
+                            <i class="uil uil-database mr-3"></i>
+                            PMS集成
+                        </button>
+                        <button
+                                @click="activeSection = 'bot'"
+                                :class="activeSection === 'bot' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 rounded-lg mb-2 flex items-center"
+                        >
+                            <i class="uil uil-robot mr-3"></i>
+                            Bot配置
+                        </button>
+                        <button
+                                @click="activeSection = 'smtp'"
+                                :class="activeSection === 'smtp' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 rounded-lg mb-2 flex items-center"
+                        >
+                            <i class="uil uil-envelope mr-3"></i>
+                            邮件服务
+                        </button>
+                        <button
+                                @click="activeSection = 'translation'"
+                                :class="activeSection === 'translation' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 rounded-lg mb-2 flex items-center"
+                        >
+                            <i class="uil uil-language mr-3"></i>
+                            翻译服务
+                        </button>
+                        <button
+                                @click="activeSection = 'security'"
+                                :class="activeSection === 'security' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 rounded-lg mb-2 flex items-center"
+                        >
+                            <i class="uil uil-shield-check mr-3"></i>
+                            安全设置
+                        </button>
+                        <button
+                                @click="activeSection = 'backup'"
+                                :class="activeSection === 'backup' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 rounded-lg flex items-center"
+                        >
+                            <i class="uil uil-cloud-download mr-3"></i>
+                            备份恢复
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- 右侧设置内容 -->
+            <div class="lg:col-span-2">
+                <!-- 常规设置 -->
+                <div x-show="activeSection === 'general'" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">常规设置</h3>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">酒店名称</label>
+                            <input
+                                    type="text"
+                                    x-model="settings.general.hotelName"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">系统时区</label>
+                            <select
+                                    x-model="settings.general.timezone"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+                                <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                                <option value="America/New_York">America/New_York (UTC-5)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">默认语言</label>
+                            <select
+                                    x-model="settings.general.defaultLanguage"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="zh-CN">简体中文</option>
+                                <option value="en">English</option>
+                                <option value="ja">日本語</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="flex items-center">
+                                <input
+                                        type="checkbox"
+                                        x-model="settings.general.maintenanceMode"
+                                        class="mr-2 rounded text-blue-600"
+                                >
+                                <span class="text-sm text-gray-700">维护模式</span>
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 ml-6">启用后客人将无法访问系统</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button
+                                @click="saveSettings('general')"
+                                data-testid="save-general"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            保存设置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PMS集成 -->
+                <div x-show="activeSection === 'pms'" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">PMS集成设置</h3>
+
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-medium text-gray-800">PMS系统集成</h4>
+                                <p class="text-sm text-gray-600">连接酒店物业管理系统</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input
+                                        type="checkbox"
+                                        x-model="settings.pms.enabled"
+                                        class="sr-only peer"
+                                >
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div x-show="settings.pms.enabled" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">API端点</label>
+                                <input
+                                        type="url"
+                                        x-model="settings.pms.apiEndpoint"
+                                        placeholder="https://pms.hotel.com/api"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">API密钥</label>
+                                <div class="relative">
+                                    <input
+                                            :type="showPmsKey ? 'text' : 'password'"
+                                            x-model="settings.pms.apiKey"
+                                            placeholder="••••••••••••••••"
+                                            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                    <button
+                                            @click="showPmsKey = !showPmsKey"
+                                            type="button"
+                                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        <i :class="showPmsKey ? 'uil-eye-slash' : 'uil-eye'" class="uil"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                    @click="testPmsConnection"
+                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                            >
+                                <i class="uil uil-plug mr-2"></i>
+                                测试连接
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button
+                                @click="saveSettings('pms')"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            保存设置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bot配置 -->
+                <div x-show="activeSection === 'bot'" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">Bot通知配置</h3>
+
+                    <!-- WhatsApp配置 -->
+                    <div class="mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-medium text-gray-800">WhatsApp Bot</h4>
+                                <p class="text-sm text-gray-600">发送任务通知到WhatsApp</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input
+                                        type="checkbox"
+                                        x-model="settings.bot.whatsapp.enabled"
+                                        class="sr-only peer"
+                                >
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div x-show="settings.bot.whatsapp.enabled" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp Token</label>
+                                <input
+                                        type="password"
+                                        x-model="settings.bot.whatsapp.token"
+                                        placeholder="••••••••••••••••"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line配置 -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-medium text-gray-800">Line Bot</h4>
+                                <p class="text-sm text-gray-600">发送任务通知到Line</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input
+                                        type="checkbox"
+                                        x-model="settings.bot.line.enabled"
+                                        class="sr-only peer"
+                                >
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div x-show="settings.bot.line.enabled" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Channel Secret</label>
+                                <input
+                                        type="password"
+                                        x-model="settings.bot.line.channelSecret"
+                                        placeholder="••••••••••••••••"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Channel Access Token</label>
+                                <input
+                                        type="password"
+                                        x-model="settings.bot.line.accessToken"
+                                        placeholder="••••••••••••••••"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button
+                                @click="saveSettings('bot')"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            保存设置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SMTP配置 -->
+                <div x-show="activeSection === 'smtp'" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">邮件服务配置</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">SMTP服务器</label>
+                            <input
+                                    type="text"
+                                    x-model="settings.smtp.host"
+                                    placeholder="smtp.gmail.com"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">端口</label>
+                                <input
+                                        type="number"
+                                        x-model="settings.smtp.port"
+                                        placeholder="587"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">加密方式</label>
+                                <select
+                                        x-model="settings.smtp.encryption"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="tls">TLS</option>
+                                    <option value="ssl">SSL</option>
+                                    <option value="none">无</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
+                            <input
+                                    type="text"
+                                    x-model="settings.smtp.username"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                            <input
+                                    type="password"
+                                    x-model="settings.smtp.password"
+                                    placeholder="••••••••••••••••"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">发件人邮箱</label>
+                            <input
+                                    type="email"
+                                    x-model="settings.smtp.fromEmail"
+                                    placeholder="noreply@hotel.com"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+
+                        <button
+                                @click="testSmtp"
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                        >
+                            <i class="uil uil-envelope-send mr-2"></i>
+                            发送测试邮件
+                        </button>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button
+                                @click="saveSettings('smtp')"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            保存设置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 翻译服务 -->
+                <div x-show="activeSection === 'translation'" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">翻译服务配置</h3>
+
+                    <div class="space-y-6">
+                        <!-- Google Translate -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-medium text-gray-800">Google Translate</h4>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                            type="checkbox"
+                                            x-model="settings.translation.google.enabled"
+                                            class="sr-only peer"
+                                    >
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div x-show="settings.translation.google.enabled">
+                                <input
+                                        type="password"
+                                        x-model="settings.translation.google.apiKey"
+                                        placeholder="API密钥"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- OpenAI -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-medium text-gray-800">OpenAI GPT-4</h4>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                            type="checkbox"
+                                            x-model="settings.translation.openai.enabled"
+                                            class="sr-only peer"
+                                    >
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div x-show="settings.translation.openai.enabled">
+                                <input
+                                        type="password"
+                                        x-model="settings.translation.openai.apiKey"
+                                        placeholder="API密钥"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- 月度限额 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">月度字符限额</label>
+                            <input
+                                    type="number"
+                                    x-model="settings.translation.monthlyLimit"
+                                    placeholder="500000"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">设置为0表示无限制</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button
+                                @click="saveSettings('translation')"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            保存设置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 安全设置 -->
+                <div x-show="activeSection === 'security'" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">安全设置</h3>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">会话超时时间（分钟）</label>
+                            <input
+                                    type="number"
+                                    x-model="settings.security.sessionTimeout"
+                                    placeholder="30"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">密码最小长度</label>
+                            <input
+                                    type="number"
+                                    x-model="settings.security.minPasswordLength"
+                                    placeholder="8"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="flex items-center">
+                                <input
+                                        type="checkbox"
+                                        x-model="settings.security.requireMFA"
+                                        class="mr-2 rounded text-blue-600"
+                                >
+                                <span class="text-sm text-gray-700">强制启用双因素认证</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="flex items-center">
+                                <input
+                                        type="checkbox"
+                                        x-model="settings.security.ipWhitelist"
+                                        class="mr-2 rounded text-blue-600"
+                                >
+                                <span class="text-sm text-gray-700">启用IP白名单</span>
+                            </label>
+                        </div>
+
+                        <div x-show="settings.security.ipWhitelist" class="ml-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">允许的IP地址（每行一个）</label>
+                            <textarea
+                                    x-model="settings.security.allowedIPs"
+                                    rows="4"
+                                    placeholder="192.168.1.0/24&#10;10.0.0.1"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button
+                                @click="saveSettings('security')"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            保存设置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 备份恢复 -->
+                <div x-show="activeSection === 'backup'" class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">备份与恢复</h3>
+
+                    <div class="space-y-6">
+                        <!-- 自动备份 -->
+                        <div>
+                            <h4 class="font-medium text-gray-800 mb-3">自动备份设置</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input
+                                            type="checkbox"
+                                            x-model="settings.backup.autoBackup"
+                                            class="mr-2 rounded text-blue-600"
+                                    >
+                                    <span class="text-sm text-gray-700">启用自动备份</span>
+                                </label>
+
+                                <div x-show="settings.backup.autoBackup" class="ml-6 space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">备份频率</label>
+                                        <select
+                                                x-model="settings.backup.frequency"
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        >
+                                            <option value="daily">每天</option>
+                                            <option value="weekly">每周</option>
+                                            <option value="monthly">每月</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">保留天数</label>
+                                        <input
+                                                type="number"
+                                                x-model="settings.backup.retentionDays"
+                                                placeholder="30"
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 手动备份 -->
+                        <div>
+                            <h4 class="font-medium text-gray-800 mb-3">手动备份</h4>
+                            <button
+                                    @click="createBackup"
+                                    data-testid="create-backup"
+                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            >
+                                <i class="uil uil-cloud-upload mr-2"></i>
+                                立即备份
+                            </button>
+                        </div>
+
+                        <!-- 备份历史 -->
+                        <div>
+                            <h4 class="font-medium text-gray-800 mb-3">备份历史</h4>
+                            <div class="space-y-2">
+                                <template x-for="backup in backupHistory" :key="backup.id">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800" x-text="backup.filename"></p>
+                                            <p class="text-xs text-gray-500" x-text="backup.date + ' · ' + backup.size"></p>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button
+                                                    @click="downloadBackup(backup)"
+                                                    class="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                            >
+                                                <i class="uil uil-download-alt"></i>
+                                            </button>
+                                            <button
+                                                    @click="restoreBackup(backup)"
+                                                    class="p-1 text-orange-600 hover:bg-orange-50 rounded"
+                                            >
+                                                <i class="uil uil-redo"></i>
+                                            </button>
+                                            <button
+                                                    @click="deleteBackup(backup)"
+                                                    class="p-1 text-red-600 hover:bg-red-50 rounded"
+                                            >
+                                                <i class="uil uil-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Mock数据
+    const MOCK_BACKUPS = [
+        { id: 1, filename: 'backup_2024_01_01_auto.sql', date: '2024-01-01 03:00', size: '125MB' },
+        { id: 2, filename: 'backup_2023_12_25_manual.sql', date: '2023-12-25 14:30', size: '118MB' },
+        { id: 3, filename: 'backup_2023_12_18_auto.sql', date: '2023-12-18 03:00', size: '112MB' }
+    ];
+
+    function systemSettingsApp() {
+        return {
+            activeSection: 'general',
+            showPmsKey: false,
+            settings: {
+                general: {
+                    hotelName: '豪华国际酒店',
+                    timezone: 'Asia/Shanghai',
+                    defaultLanguage: 'zh-CN',
+                    maintenanceMode: false
+                },
+                pms: {
+                    enabled: true,
+                    apiEndpoint: 'https://pms.hotel.com/api',
+                    apiKey: ''
+                },
+                bot: {
+                    whatsapp: {
+                        enabled: false,
+                        token: ''
+                    },
+                    line: {
+                        enabled: false,
+                        channelSecret: '',
+                        accessToken: ''
+                    }
+                },
+                smtp: {
+                    host: 'smtp.gmail.com',
+                    port: 587,
+                    encryption: 'tls',
+                    username: '',
+                    password: '',
+                    fromEmail: 'noreply@hotel.com'
+                },
+                translation: {
+                    google: {
+                        enabled: true,
+                        apiKey: ''
+                    },
+                    openai: {
+                        enabled: false,
+                        apiKey: ''
+                    },
+                    monthlyLimit: 500000
+                },
+                security: {
+                    sessionTimeout: 30,
+                    minPasswordLength: 8,
+                    requireMFA: false,
+                    ipWhitelist: false,
+                    allowedIPs: ''
+                },
+                backup: {
+                    autoBackup: true,
+                    frequency: 'daily',
+                    retentionDays: 30
+                }
+            },
+            backupHistory: [...MOCK_BACKUPS],
+
+            saveSettings(section) {
+                console.log(`保存${section}设置:`, this.settings[section]);
+                // 模拟API调用: PATCH /admin/settings
+                alert(`${this.getSectionName(section)}设置已保存！`);
+            },
+
+            getSectionName(section) {
+                const names = {
+                    'general': '常规',
+                    'pms': 'PMS集成',
+                    'bot': 'Bot配置',
+                    'smtp': '邮件服务',
+                    'translation': '翻译服务',
+                    'security': '安全',
+                    'backup': '备份'
+                };
+                return names[section] || section;
+            },
+
+            testPmsConnection() {
+                console.log('测试PMS连接');
+                alert('PMS连接测试成功！');
+            },
+
+            testSmtp() {
+                console.log('发送测试邮件');
+                alert('测试邮件已发送到管理员邮箱！');
+            },
+
+            createBackup() {
+                console.log('创建备份');
+                if (confirm('确定要立即创建系统备份吗？')) {
+                    alert('备份任务已启动，完成后将通知您。');
+                }
+            },
+
+            downloadBackup(backup) {
+                console.log('下载备份:', backup.filename);
+                alert(`开始下载 ${backup.filename}`);
+            },
+
+            restoreBackup(backup) {
+                if (confirm(`确定要从 ${backup.filename} 恢复系统吗？\n\n警告：这将覆盖当前所有数据！`)) {
+                    console.log('恢复备份:', backup.filename);
+                    alert('系统恢复任务已启动，请勿关闭页面。');
+                }
+            },
+
+            deleteBackup(backup) {
+                if (confirm(`确定要删除备份 ${backup.filename} 吗？`)) {
+                    this.backupHistory = this.backupHistory.filter(b => b.id !== backup.id);
+                    console.log('删除备份:', backup.filename);
+                }
+            },
+
+            navigateTo(page) {
+                console.log(`跳转到 /admin/${page}`);
+                const pageMap = {
+                    'menu-config': 'C-03-menu-config.html',
+                    'user-management': 'C-07-user-management.html',
+                    'system-settings': 'C-08-system-settings.html',
+                    'dashboard': 'C-01-dashboard.html'
+                };
+                window.location.href = pageMap[page] || 'C-01-dashboard.html';
+            }
+        };
+    }
+</script>
+</body>
+</html>
