@@ -1,0 +1,1090 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "酒店管理系统 - 用户管理 API",
+    "description": "酒店管理系统的用户管理相关接口，包含用户的增删改查、锁定解锁、搜索等功能",
+    "version": "1.0.0",
+    "contact": {
+      "name": "开发团队",
+      "email": "dev@hotel.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "本地开发环境"
+    },
+    {
+      "url": "https://api.hotel.com",
+      "description": "生产环境"
+    }
+  ],
+  "paths": {
+    "/user/detail": {
+      "post": {
+        "tags": ["用户管理"],
+        "summary": "获取用户详情",
+        "description": "根据用户ID获取用户的详细信息，包括基本信息、部门信息、角色信息等",
+        "operationId": "getUserDetail",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDetailRequest"
+              },
+              "example": {
+                "userId": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取用户详情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_UserDetailResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": {
+                    "userId": 1,
+                    "username": "admin",
+                    "displayName": "系统管理员",
+                    "employeeNumber": "EMP001",
+                    "email": "admin@hotel.com",
+                    "phone": "13800138000",
+                    "superAdmin": true,
+                    "active": 1,
+                    "department": {
+                      "deptId": 1,
+                      "deptName": "技术部"
+                    },
+                    "roles": [
+                      {
+                        "roleId": 1,
+                        "roleName": "系统管理员"
+                      }
+                    ]
+                  },
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/create": {
+      "post": {
+        "tags": ["用户管理"],
+        "summary": "创建新用户",
+        "description": "创建新的酒店管理系统用户，需要提供用户名、密码、显示名称等基本信息",
+        "operationId": "createUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateRequest"
+              },
+              "example": {
+                "username": "newuser",
+                "password": "password123",
+                "displayName": "新用户",
+                "employeeNumber": "EMP002",
+                "email": "newuser@hotel.com",
+                "phone": "13800138001",
+                "roleIds": [2, 3],
+                "deptId": 1,
+                "superAdmin": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功创建用户",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Long"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": 2,
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/update": {
+      "post": {
+        "tags": ["用户管理"],
+        "summary": "更新用户信息",
+        "description": "更新指定用户的信息，包括基本信息、角色、部门等",
+        "operationId": "updateUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              },
+              "example": {
+                "userId": 2,
+                "username": "updateduser",
+                "displayName": "更新后的用户",
+                "employeeNumber": "EMP002",
+                "email": "updated@hotel.com",
+                "phone": "13800138002",
+                "roleIds": [2],
+                "deptId": 2,
+                "superAdmin": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功更新用户信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Boolean"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": true,
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/delete": {
+      "post": {
+        "tags": ["用户管理"],
+        "summary": "删除用户",
+        "description": "根据用户ID删除指定的用户",
+        "operationId": "deleteUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDeleteRequest"
+              },
+              "example": {
+                "userId": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功删除用户",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Boolean"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": true,
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/lock": {
+      "post": {
+        "tags": ["用户管理"],
+        "summary": "锁定/解锁用户",
+        "description": "切换指定用户的锁定状态，锁定后用户无法登录系统",
+        "operationId": "toggleUserLock",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLockRequest"
+              },
+              "example": {
+                "userId": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功切换用户锁定状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_String"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": "lock",
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/search": {
+      "post": {
+        "tags": ["用户管理"],
+        "summary": "搜索用户",
+        "description": "根据关键词、部门ID、状态等条件搜索用户，支持游标分页",
+        "operationId": "searchUsers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSearchRequest"
+              },
+              "example": {
+                "keyword": "admin",
+                "deptId": 1,
+                "active": 1,
+                "size": 20
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功搜索用户",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_UserListResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": {
+                    "users": [
+                      {
+                        "userId": 1,
+                        "username": "admin",
+                        "displayName": "系统管理员",
+                        "employeeNumber": "EMP001",
+                        "active": 1,
+                        "department": {
+                          "deptId": 1,
+                          "deptName": "技术部"
+                        }
+                      }
+                    ],
+                    "hasMore": false,
+                    "lastCreateTime": "2023-12-21T10:30:00.000Z",
+                    "lastUserId": 1,
+                    "size": 20
+                  },
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserDetailRequest": {
+        "type": "object",
+        "required": ["userId"],
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          }
+        },
+        "description": "用户详情请求对象"
+      },
+      "UserCreateRequest": {
+        "type": "object",
+        "required": ["username", "password", "displayName"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "newuser",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "description": "密码",
+            "example": "password123",
+            "minLength": 6,
+            "maxLength": 100
+          },
+          "displayName": {
+            "type": "string",
+            "description": "显示名称",
+            "example": "新用户",
+            "maxLength": 100
+          },
+          "employeeNumber": {
+            "type": "string",
+            "description": "员工编号",
+            "example": "EMP002",
+            "maxLength": 50
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "邮箱地址",
+            "example": "newuser@hotel.com",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "description": "手机号码",
+            "example": "13800138001",
+            "maxLength": 20
+          },
+          "roleIds": {
+            "type": "array",
+            "description": "角色ID列表",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": [2, 3]
+          },
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "superAdmin": {
+            "type": "boolean",
+            "description": "是否为超级管理员",
+            "default": false,
+            "example": false
+          }
+        },
+        "description": "用户创建请求对象"
+      },
+      "UserUpdateRequest": {
+        "type": "object",
+        "required": ["userId"],
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 2
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "updateduser",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "description": "密码（可选，不传则不修改）",
+            "example": "newpassword123",
+            "minLength": 6,
+            "maxLength": 100
+          },
+          "displayName": {
+            "type": "string",
+            "description": "显示名称",
+            "example": "更新后的用户",
+            "maxLength": 100
+          },
+          "employeeNumber": {
+            "type": "string",
+            "description": "员工编号",
+            "example": "EMP002",
+            "maxLength": 50
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "邮箱地址",
+            "example": "updated@hotel.com",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "description": "手机号码",
+            "example": "13800138002",
+            "maxLength": 20
+          },
+          "roleIds": {
+            "type": "array",
+            "description": "角色ID列表",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": [2]
+          },
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 2
+          },
+          "superAdmin": {
+            "type": "boolean",
+            "description": "是否为超级管理员",
+            "example": false
+          }
+        },
+        "description": "用户更新请求对象"
+      },
+      "UserDeleteRequest": {
+        "type": "object",
+        "required": ["userId"],
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "要删除的用户ID",
+            "example": 2
+          }
+        },
+        "description": "用户删除请求对象"
+      },
+      "UserLockRequest": {
+        "type": "object",
+        "required": ["userId"],
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "要锁定/解锁的用户ID",
+            "example": 2
+          }
+        },
+        "description": "用户锁定/解锁请求对象"
+      },
+      "UserSearchRequest": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "description": "搜索关键词（用户名、显示名称、员工编号）",
+            "example": "admin",
+            "maxLength": 100
+          },
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID筛选",
+            "example": 1
+          },
+          "active": {
+            "type": "integer",
+            "description": "用户状态筛选（1-激活，0-锁定）",
+            "enum": [0, 1],
+            "example": 1
+          },
+          "lastCreateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "上一页最后一条记录的创建时间（游标分页）",
+            "example": "2023-12-21T10:30:00.000Z"
+          },
+          "lastUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "上一页最后一条记录的用户ID（游标分页）",
+            "example": 1
+          },
+          "size": {
+            "type": "integer",
+            "description": "每页大小",
+            "default": 50,
+            "minimum": 1,
+            "maximum": 100,
+            "example": 20
+          }
+        },
+        "description": "用户搜索请求对象"
+      },
+      "UserDetailResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "admin"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "显示名称",
+            "example": "系统管理员"
+          },
+          "employeeNumber": {
+            "type": "string",
+            "description": "员工编号",
+            "example": "EMP001"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "邮箱地址",
+            "example": "admin@hotel.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "手机号码",
+            "example": "13800138000"
+          },
+          "superAdmin": {
+            "type": "boolean",
+            "description": "是否为超级管理员",
+            "example": true
+          },
+          "active": {
+            "type": "integer",
+            "description": "用户状态（1-激活，0-锁定）",
+            "enum": [0, 1],
+            "example": 1
+          },
+          "department": {
+            "$ref": "#/components/schemas/UserDepartmentInfo"
+          },
+          "roles": {
+            "type": "array",
+            "description": "用户角色列表",
+            "items": {
+              "$ref": "#/components/schemas/UserRoleInfo"
+            }
+          }
+        },
+        "description": "用户详情响应对象"
+      },
+      "UserListResponse": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "description": "用户列表",
+            "items": {
+              "$ref": "#/components/schemas/UserItem"
+            }
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "是否有更多记录",
+            "example": false
+          },
+          "lastCreateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "最后一条记录的创建时间（作为下次查询的游标）",
+            "example": "2023-12-21T10:30:00.000Z"
+          },
+          "lastUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "最后一条记录的用户ID（作为下次查询的游标）",
+            "example": 1
+          },
+          "size": {
+            "type": "integer",
+            "description": "每页大小",
+            "example": 20
+          }
+        },
+        "description": "用户列表响应对象"
+      },
+      "UserItem": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "admin"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "显示名称",
+            "example": "系统管理员"
+          },
+          "employeeNumber": {
+            "type": "string",
+            "description": "员工编号",
+            "example": "EMP001"
+          },
+          "active": {
+            "type": "integer",
+            "description": "用户状态（1-激活，0-锁定）",
+            "enum": [0, 1],
+            "example": 1
+          },
+          "department": {
+            "$ref": "#/components/schemas/UserDepartmentInfo"
+          }
+        },
+        "description": "用户列表项响应对象"
+      },
+      "UserDepartmentInfo": {
+        "type": "object",
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称",
+            "example": "技术部"
+          }
+        },
+        "description": "用户部门信息响应对象"
+      },
+      "UserRoleInfo": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          },
+          "roleName": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "系统管理员"
+          }
+        },
+        "description": "用户角色信息响应对象"
+      },
+      "ApiResponse_UserDetailResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1703123456789
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "响应状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserDetailResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "错误信息",
+            "example": null
+          }
+        },
+        "description": "用户详情API响应"
+      },
+      "ApiResponse_UserListResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1703123456789
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "响应状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserListResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "错误信息",
+            "example": null
+          }
+        },
+        "description": "用户列表API响应"
+      },
+      "ApiResponse_Long": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1703123456789
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "响应状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "success"
+          },
+          "data": {
+            "type": "integer",
+            "format": "int64",
+            "description": "返回数据（用户ID）",
+            "example": 2
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "错误信息",
+            "example": null
+          }
+        },
+        "description": "返回Long类型数据的API响应"
+      },
+      "ApiResponse_Boolean": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1703123456789
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "响应状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "success"
+          },
+          "data": {
+            "type": "boolean",
+            "description": "返回数据（操作结果）",
+            "example": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "错误信息",
+            "example": null
+          }
+        },
+        "description": "返回Boolean类型数据的API响应"
+      },
+      "ApiResponse_String": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1703123456789
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "响应状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "success"
+          },
+          "data": {
+            "type": "string",
+            "description": "返回数据（锁定状态）",
+            "example": "lock"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "错误信息",
+            "example": null
+          }
+        },
+        "description": "返回String类型数据的API响应"
+      },
+      "ApiResponse_Error": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1703123456789
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "响应状态码",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "请求失败"
+          },
+          "data": {
+            "type": "null",
+            "description": "返回数据",
+            "example": null
+          },
+          "error": {
+            "type": "string",
+            "description": "错误信息",
+            "example": "参数验证失败"
+          }
+        },
+        "description": "错误API响应"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "用户管理",
+      "description": "酒店管理系统的用户管理相关接口"
+    }
+  ]
+}
