@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, 
   Edit, 
@@ -9,15 +9,11 @@ import {
   XCircle,
   Folder
 } from 'lucide-react';
+import { userApi } from '../api/userApi';
+import { transformUserItemToUser, transformUserFormToCreateRequest, transformUserFormToUpdateRequest } from '../utils/userDataTransform';
+import type { User, Role, Department, UserForm } from '../api/types';
 
-// Mock数据
-const MOCK_USERS = [
-  { id: 1, name: '张三', username: 'zhangsan', employeeId: 'E001', role: 'admin', department: '管理部', status: 'active', lastLogin: '2024-01-01 10:30' },
-  { id: 2, name: '李四', username: 'lisi', employeeId: 'E002', role: 'agent', department: '前台', status: 'active', lastLogin: '2024-01-01 09:15' },
-  { id: 3, name: '王五', username: 'wangwu', employeeId: 'E003', role: 'staff', department: '客房部', status: 'active', lastLogin: '2024-01-01 08:45' },
-  { id: 4, name: '赵六', username: 'zhaoliu', employeeId: 'E004', role: 'staff', department: '餐饮部', status: 'inactive', lastLogin: '2023-12-30 18:00' }
-];
-
+// Mock数据（保留作为备用）
 const MOCK_ROLES = [
   { id: 'admin', name: '超级管理员', description: '拥有系统所有权限', userCount: 2, permissions: ['用户管理', '系统设置', '数据导出', '所有功能'] },
   { id: 'agent', name: '前台客服', description: '处理客人会话和工单', userCount: 5, permissions: ['会话管理', '工单创建', '查看报表'] },
@@ -31,43 +27,9 @@ const MOCK_DEPARTMENTS = [
   { id: 4, name: '餐饮部', manager: '王五', memberCount: 6 }
 ];
 
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  employeeId: string;
-  role: string;
-  department: string;
-  status: 'active' | 'inactive';
-  lastLogin: string;
-}
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  userCount: number;
-  permissions: string[];
-}
-
-interface Department {
-  id: number;
-  name: string;
-  manager: string;
-  memberCount: number;
-}
-
-interface UserForm {
-  name: string;
-  username: string;
-  employeeId: string;
-  role: string;
-  department: string;
-}
-
 const UserManagement = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'departments'>('users');
-  const [users, setUsers] = useState<User[]>([...MOCK_USERS]);
+  const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([...MOCK_ROLES]);
   const [departments, setDepartments] = useState<Department[]>([...MOCK_DEPARTMENTS]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,6 +44,83 @@ const UserManagement = () => {
     role: '',
     department: ''
   });
+  
+  // 新增状态
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // 分页状态
+  const [hasMore, setHasMore] = useState(false);
+  const [lastCreateTime, setLastCreateTime] = useState<number | null>(null);
+  const [lastUserId, setLastUserId] = useState<number | null>(null);
+  const [pageSize] = useState(20);
+
+  // 初始化加载用户数据
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // 加载用户列表（第一页或重置）
+  const loadUsers = async (reset: boolean = true) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (reset) {
+        // 重置分页状态
+        setLastCreateTime(null);
+        setLastUserId(null);
+        setUsers([]);
+      }
+      
+      const searchParams = reset ? buildSearchParams() : {
+        size: pageSize,
+        lastCreateTime: lastCreateTime,
+        lastUserId: lastUserId
+      };
+      
+      const response = await userApi.searchUsers(searchParams);
+      
+      if (response.statusCode === 200 && response.data) {
+        const transformedUsers = response.data.users.map(transformUserItemToUser);
+        
+        if (reset) {
+          setUsers(transformedUsers);
+        } else {
+          setUsers(prev => [...prev, ...transformedUsers]);
+        }
+        
+        // 更新分页状态
+        setHasMore(response.data.hasMore);
+        setLastCreateTime(response.data.lastCreateTime || null);
+        setLastUserId(response.data.lastUserId || null);
+      } else {
+        console.error('Failed to load users:', response.message);
+        setError('加载用户列表失败');
+      }
+    } catch (err) {
+      console.error('Error loading users:', err);
+      setError('加载用户列表时发生错误');
+      // 如果API失败，使用模拟数据
+      if (reset) {
+        const mockUsers: User[] = [
+          { id: 1, name: '张三', username: 'zhangsan', employeeId: 'E001', role: 'admin', department: '管理部', status: 'active', lastLogin: '2024-01-01 10:30' },
+          { id: 2, name: '李四', username: 'lisi', employeeId: 'E002', role: 'agent', department: '前台', status: 'active', lastLogin: '2024-01-01 09:15' },
+          { id: 3, name: '王五', username: 'wangwu', employeeId: 'E003', role: 'staff', department: '客房部', status: 'active', lastLogin: '2024-01-01 08:45' },
+          { id: 4, name: '赵六', username: 'zhaoliu', employeeId: 'E004', role: 'staff', department: '餐饮部', status: 'inactive', lastLogin: '2023-12-30 18:00' }
+        ];
+        setUsers(mockUsers);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 加载更多用户（下一页）
+  const loadMoreUsers = async () => {
+    if (!hasMore || loading) return;
+    await loadUsers(false);
+  };
 
   // 获取过滤后的用户列表
   const getFilteredUsers = () => {
@@ -105,6 +144,50 @@ const UserManagement = () => {
     }
 
     return filtered;
+  };
+
+  // 搜索用户
+  const handleSearch = () => {
+    loadUsers(true); // 重置并重新搜索
+  };
+
+  // 筛选用户
+  const handleFilter = () => {
+    loadUsers(true); // 重置并重新筛选
+  };
+
+  // 构建搜索参数
+  const buildSearchParams = () => {
+    const params: {
+      size: number;
+      lastCreateTime: null;
+      lastUserId: null;
+      keyword?: string;
+      deptId?: number;
+      active?: number;
+    } = {
+      size: pageSize,
+      lastCreateTime: null,
+      lastUserId: null
+    };
+
+    if (searchQuery) {
+      params.keyword = searchQuery;
+    }
+
+    if (filterDepartment) {
+      // 根据部门名称找到部门ID
+      const dept = departments.find(d => d.name === filterDepartment);
+      if (dept) {
+        params.deptId = dept.id;
+      }
+    }
+
+    if (filterStatus) {
+      params.active = filterStatus === 'active' ? 1 : 0;
+    }
+
+    return params;
   };
 
   // 获取角色名称
@@ -144,33 +227,91 @@ const UserManagement = () => {
   };
 
   // 保存用户
-  const saveUser = () => {
-    if (editingUser) {
-      // 更新用户
-      console.log('PUT /admin/users/' + editingUser.id, userForm);
-    } else {
-      // 创建用户
-      console.log('POST /admin/users', userForm);
+  const saveUser = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (editingUser) {
+        // 更新用户
+        const updateRequest = transformUserFormToUpdateRequest(editingUser.id, userForm);
+        const response = await userApi.updateUser(updateRequest);
+        
+        if (response.statusCode === 200 && response.data) {
+          alert('用户信息已更新');
+          loadUsers(); // 重新加载用户列表
+        } else {
+          setError('更新用户失败: ' + response.message);
+        }
+      } else {
+        // 创建用户
+        const createRequest = transformUserFormToCreateRequest(userForm);
+        const response = await userApi.createUser(createRequest);
+        
+        if (response.statusCode === 200 && response.data) {
+          alert('用户创建成功');
+          loadUsers(); // 重新加载用户列表
+        } else {
+          setError('创建用户失败: ' + response.message);
+        }
+      }
+      
+      closeUserModal();
+    } catch (err) {
+      console.error('Error saving user:', err);
+      setError('保存用户时发生错误');
+    } finally {
+      setLoading(false);
     }
-    alert('用户信息已保存');
-    closeUserModal();
   };
 
   // 切换用户状态
-  const toggleUserStatus = (user: User) => {
-    const newStatus = user.status === 'active' ? 'inactive' : 'active';
-    const updatedUsers = users.map(u => 
-      u.id === user.id ? { ...u, status: newStatus } : u
-    );
-    setUsers(updatedUsers);
-    console.log('PATCH /admin/users/' + user.id, { status: newStatus });
+  const toggleUserStatus = async (user: User) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await userApi.toggleUserLock({ userId: user.id });
+      
+      if (response.statusCode === 200 && response.data) {
+        const newStatus: 'active' | 'inactive' = user.status === 'active' ? 'inactive' : 'active';
+        const updatedUsers = users.map(u => 
+          u.id === user.id ? { ...u, status: newStatus } : u
+        );
+        setUsers(updatedUsers);
+        alert(`用户已${newStatus === 'active' ? '启用' : '禁用'}`);
+      } else {
+        setError('切换用户状态失败: ' + response.message);
+      }
+    } catch (err) {
+      console.error('Error toggling user status:', err);
+      setError('切换用户状态时发生错误');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 删除用户
-  const deleteUser = (user: User) => {
+  const deleteUser = async (user: User) => {
     if (confirm(`确定要删除用户 ${user.name} 吗？`)) {
-      setUsers(users.filter(u => u.id !== user.id));
-      console.log('DELETE /admin/users/' + user.id);
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await userApi.deleteUser({ userId: user.id });
+        
+        if (response.statusCode === 200 && response.data) {
+          setUsers(users.filter(u => u.id !== user.id));
+          alert('用户删除成功');
+        } else {
+          setError('删除用户失败: ' + response.message);
+        }
+      } catch (err) {
+        console.error('Error deleting user:', err);
+        setError('删除用户时发生错误');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -195,12 +336,26 @@ const UserManagement = () => {
         <button
           onClick={openAddUserModal}
           data-testid="add-user-button"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="mr-2" size={16} />
-          添加用户
+          {loading ? '加载中...' : '添加用户'}
         </button>
       </div>
+
+      {/* 错误提示 */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          {error}
+          <button 
+            onClick={() => setError(null)}
+            className="ml-2 text-red-500 hover:text-red-700"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* 标签页 */}
       <div className="bg-white rounded-lg shadow mb-6">
@@ -248,6 +403,7 @@ const UserManagement = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="搜索用户名、姓名或工号..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -259,7 +415,7 @@ const UserManagement = () => {
               >
                 <option value="">所有部门</option>
                 {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  <option key={dept.id} value={dept.name}>{dept.name}</option>
                 ))}
               </select>
               <select
@@ -271,99 +427,136 @@ const UserManagement = () => {
                 <option value="active">启用</option>
                 <option value="inactive">禁用</option>
               </select>
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                搜索
+              </button>
+              <button
+                onClick={handleFilter}
+                disabled={loading}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50"
+              >
+                筛选
+              </button>
             </div>
           </div>
 
           {/* 用户表格 */}
           <div className="p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-sm text-gray-600 border-b">
-                    <th className="pb-3 font-medium">用户信息</th>
-                    <th className="pb-3 font-medium">角色</th>
-                    <th className="pb-3 font-medium">部门</th>
-                    <th className="pb-3 font-medium">状态</th>
-                    <th className="pb-3 font-medium">最后登录</th>
-                    <th className="pb-3 font-medium">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {getFilteredUsers().map((user) => (
-                    <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                            <span className="text-gray-600 font-medium">{user.name.charAt(0)}</span>
+            {loading && users.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-gray-600">加载中...</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-sm text-gray-600 border-b">
+                      <th className="pb-3 font-medium">用户信息</th>
+                      <th className="pb-3 font-medium">角色</th>
+                      <th className="pb-3 font-medium">部门</th>
+                      <th className="pb-3 font-medium">状态</th>
+                      <th className="pb-3 font-medium">最后登录</th>
+                      <th className="pb-3 font-medium">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    {getFilteredUsers().map((user) => (
+                      <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                              <span className="text-gray-600 font-medium">{user.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800">{user.name}</p>
+                              <p className="text-gray-500">
+                                {user.username} · {user.employeeId}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-800">{user.name}</p>
-                            <p className="text-gray-500">
-                              {user.username} · {user.employeeId}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            user.role === 'admin' ? 'bg-purple-100 text-purple-600' :
-                            user.role === 'agent' ? 'bg-blue-100 text-blue-600' :
-                            'bg-green-100 text-green-600'
-                          }`}
-                        >
-                          {getRoleName(user.role)}
-                        </span>
-                      </td>
-                      <td className="py-4 text-gray-600">{user.department}</td>
-                      <td className="py-4">
-                        <span
-                          className={`flex items-center ${
-                            user.status === 'active' ? 'text-green-600' : 'text-gray-400'
-                          }`}
-                        >
-                          {user.status === 'active' ? (
-                            <CheckCircle className="mr-1" size={16} />
-                          ) : (
-                            <XCircle className="mr-1" size={16} />
-                          )}
-                          <span>{user.status === 'active' ? '启用' : '禁用'}</span>
-                        </span>
-                      </td>
-                      <td className="py-4 text-gray-600">{user.lastLogin}</td>
-                      <td className="py-4">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => editUser(user)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        </td>
+                        <td className="py-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              user.role === 'admin' ? 'bg-purple-100 text-purple-600' :
+                              user.role === 'agent' ? 'bg-blue-100 text-blue-600' :
+                              'bg-green-100 text-green-600'
+                            }`}
                           >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => toggleUserStatus(user)}
-                            className={`p-1 hover:bg-gray-50 rounded ${
-                              user.status === 'active' ? 'text-orange-600' : 'text-green-600'
+                            {getRoleName(user.role)}
+                          </span>
+                        </td>
+                        <td className="py-4 text-gray-600">{user.department}</td>
+                        <td className="py-4">
+                          <span
+                            className={`flex items-center ${
+                              user.status === 'active' ? 'text-green-600' : 'text-gray-400'
                             }`}
                           >
                             {user.status === 'active' ? (
-                              <Lock size={16} />
+                              <CheckCircle className="mr-1" size={16} />
                             ) : (
-                              <Unlock size={16} />
+                              <XCircle className="mr-1" size={16} />
                             )}
-                          </button>
-                          <button
-                            onClick={() => deleteUser(user)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                            <span>{user.status === 'active' ? '启用' : '禁用'}</span>
+                          </span>
+                        </td>
+                        <td className="py-4 text-gray-600">{user.lastLogin}</td>
+                        <td className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => editUser(user)}
+                              disabled={loading}
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded disabled:opacity-50"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => toggleUserStatus(user)}
+                              disabled={loading}
+                              className={`p-1 hover:bg-gray-50 rounded disabled:opacity-50 ${
+                                user.status === 'active' ? 'text-orange-600' : 'text-green-600'
+                              }`}
+                            >
+                              {user.status === 'active' ? (
+                                <Lock size={16} />
+                              ) : (
+                                <Unlock size={16} />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => deleteUser(user)}
+                              disabled={loading}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {/* 加载更多按钮 */}
+                {hasMore && (
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={loadMoreUsers}
+                      disabled={loading}
+                      className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? '加载中...' : '加载更多'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -531,15 +724,17 @@ const UserManagement = () => {
                 <button
                   type="button"
                   onClick={closeUserModal}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                  disabled={loading}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  保存
+                  {loading ? '保存中...' : '保存'}
                 </button>
               </div>
             </form>

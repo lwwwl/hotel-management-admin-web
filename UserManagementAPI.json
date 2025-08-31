@@ -13,10 +13,6 @@
     {
       "url": "http://localhost:8080",
       "description": "本地开发环境"
-    },
-    {
-      "url": "https://api.hotel.com",
-      "description": "生产环境"
     }
   ],
   "paths": {
@@ -422,7 +418,9 @@
                 "keyword": "admin",
                 "deptId": 1,
                 "active": 1,
-                "size": 20
+                "lastCreateTime": 1703123456789,
+                "lastUserId": 1,
+                "size": 50
               }
             }
           }
@@ -454,9 +452,9 @@
                       }
                     ],
                     "hasMore": false,
-                    "lastCreateTime": "2023-12-21T10:30:00.000Z",
+                    "lastCreateTime": 1703123456789,
                     "lastUserId": 1,
-                    "size": 20
+                    "size": 50
                   },
                   "error": null
                 }
@@ -699,10 +697,10 @@
             "example": 1
           },
           "lastCreateTime": {
-            "type": "string",
-            "format": "date-time",
-            "description": "上一页最后一条记录的创建时间（游标分页）",
-            "example": "2023-12-21T10:30:00.000Z"
+            "type": "integer",
+            "format": "int64",
+            "description": "上一页最后一条记录的创建时间（游标分页，时间戳格式）",
+            "example": 1703123456789
           },
           "lastUserId": {
             "type": "integer",
@@ -716,7 +714,7 @@
             "default": 50,
             "minimum": 1,
             "maximum": 100,
-            "example": 20
+            "example": 50
           }
         },
         "description": "用户搜索请求对象"
@@ -796,10 +794,10 @@
             "example": false
           },
           "lastCreateTime": {
-            "type": "string",
-            "format": "date-time",
-            "description": "最后一条记录的创建时间（作为下次查询的游标）",
-            "example": "2023-12-21T10:30:00.000Z"
+            "type": "integer",
+            "format": "int64",
+            "description": "最后一条记录的创建时间（作为下次查询的游标，时间戳格式）",
+            "example": 1703123456789
           },
           "lastUserId": {
             "type": "integer",
