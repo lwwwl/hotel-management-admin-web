@@ -84,7 +84,7 @@ const searchUsers = async () => {
   try {
     const response = await userApi.searchUsers({
       keyword: 'admin',
-      size: 20
+      size: 500
     });
     
     if (response.statusCode === 200) {
@@ -122,7 +122,7 @@ const searchUsers = async () => {
 ## 配置说明
 
 ### 1. API基础URL
-- 当前配置: `http://localhost:8080`
+- 当前配置: `http://localhost:7788`
 - 可在 `src/api/axiosConfig.ts` 中修改
 
 ### 2. 请求头配置

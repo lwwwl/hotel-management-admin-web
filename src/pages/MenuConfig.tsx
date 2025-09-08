@@ -1,7 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
-  Eye, 
-  Save, 
   Plus, 
   Edit, 
   Trash2, 
@@ -16,41 +14,10 @@ import {
   Phone
 } from 'lucide-react';
 
-// Mock数据
-const MOCK_MENU = [
-  {
-    id: 1,
-    label: { zh: '客房服务', en: 'Room Service', ja: 'ルームサービス' },
-    icon: 'Bed',
-    template: '我需要客房服务',
-    level: 1,
-    children: []
-  },
-  {
-    id: 2,
-    label: { zh: '餐饮服务', en: 'Dining', ja: 'ダイニング' },
-    icon: 'Utensils',
-    template: '我想点餐',
-    level: 1,
-    children: []
-  },
-  {
-    id: 3,
-    label: { zh: '清洁服务', en: 'Housekeeping', ja: 'ハウスキーピング' },
-    icon: 'Brush',
-    template: '请打扫房间',
-    level: 1,
-    children: []
-  },
-  {
-    id: 4,
-    label: { zh: '其他帮助', en: 'Other Help', ja: 'その他' },
-    icon: 'HelpCircle',
-    template: '我需要其他帮助',
-    level: 1,
-    children: []
-  }
-];
+import { quickMenuApi } from '../api/quickMenuApi';
+import ConfirmModal from '../components/ConfirmModal';
+import { useToast } from '../components/ToastProvider';
+import type { QuickMenuItemBO, QuickMenuContent, QuickMenuOrderItem } from '../api/types';
 
 // 图标映射
 const iconMap = {
@@ -77,20 +44,59 @@ const availableIcons = [
 ];
 
 interface MenuItem {
-  id: number;
+  id: number; // 后端ID，新增项使用负数临时ID
   label: { zh: string; en: string; ja: string };
   icon: string;
-  template: string;
+  message: { zh: string; en: string; ja: string };
   level: number;
   children: MenuItem[];
 }
 
 const MenuConfig = () => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([...MOCK_MENU]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [previewLang, setPreviewLang] = useState<'zh' | 'en' | 'ja'>('zh');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editLang, setEditLang] = useState<'zh' | 'en' | 'ja'>('zh');
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [detailLang, setDetailLang] = useState<'zh' | 'en' | 'ja'>('zh');
+  const { showSuccess, showError } = useToast();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
+
+  // 加载后端数据
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await quickMenuApi.list();
+        if (res.statusCode === 200) {
+          const list = (res.data as QuickMenuItemBO[]).map((bo) => {
+            let content: QuickMenuContent | null = null;
+            try {
+              content = bo.content ? JSON.parse(bo.content) : null;
+            } catch (_) {
+              content = null;
+            }
+            const label = content?.name || { zh: '', en: '', ja: '' };
+            const message = content?.message || { zh: '', en: '', ja: '' };
+            const item: MenuItem = {
+              id: bo.id,
+              icon: bo.icon || 'HelpCircle',
+              label,
+              message,
+              level: 1,
+              children: []
+            };
+            return item;
+          });
+          setMenuItems(list);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    load();
+  }, []);
 
   // 处理拖拽开始
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -105,7 +111,7 @@ const MenuConfig = () => {
   };
 
   // 处理拖拽放置
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
     e.currentTarget.classList.remove('bg-blue-50');
 
@@ -115,7 +121,19 @@ const MenuConfig = () => {
       newMenuItems.splice(draggedIndex, 1);
       newMenuItems.splice(dropIndex, 0, draggedItem);
       setMenuItems(newMenuItems);
-      setHasChanges(true);
+
+      // 构造排序并保存
+      try {
+        const orders: QuickMenuOrderItem[] = newMenuItems
+          .filter(i => i.id > 0) // 仅已有后端ID的项
+          .map((item, idx) => ({ id: item.id, sortOrder: idx }));
+        const res = await quickMenuApi.saveOrder(orders);
+        if (res.statusCode === 200 && res.data) {
+          showSuccess('排序已更新');
+        }
+      } catch (err) {
+        console.error('保存排序失败', err);
+      }
     }
   };
 
@@ -128,63 +146,114 @@ const MenuConfig = () => {
   // 编辑菜单项
   const editItem = (item: MenuItem) => {
     setEditingItem(JSON.parse(JSON.stringify(item)));
+    setEditLang('zh');
+    setIsEditModalOpen(true);
   };
 
-  // 保存编辑
-  const saveItemEdit = () => {
-    if (editingItem) {
-      const index = menuItems.findIndex(item => item.id === editingItem.id);
-      if (index !== -1) {
-        const newMenuItems = [...menuItems];
-        newMenuItems[index] = { ...editingItem };
-        setMenuItems(newMenuItems);
-        setHasChanges(true);
+  // 保存编辑（直接调用后端接口）
+  const saveItemEdit = async () => {
+    if (!editingItem) return;
+    try {
+      const isCreate = editingItem.id <= 0;
+      const content: QuickMenuContent = {
+        name: { ...editingItem.label },
+        message: { ...editingItem.message }
+      };
+
+      if (isCreate) {
+        const res = await quickMenuApi.create({ icon: editingItem.icon, content: JSON.stringify(content) });
+        if (res.statusCode !== 200) throw new Error('create failed');
+      } else {
+        const res = await quickMenuApi.update({ id: editingItem.id, icon: editingItem.icon, content: JSON.stringify(content) });
+        if (res.statusCode !== 200) throw new Error('update failed');
       }
+
+      // 刷新列表
+      const listRes = await quickMenuApi.list();
+      if (listRes.statusCode === 200) {
+        const list = (listRes.data as QuickMenuItemBO[]).map((bo) => {
+          let parsed: QuickMenuContent | null = null;
+          try { parsed = bo.content ? JSON.parse(bo.content) : null; } catch { parsed = null; }
+          const label = parsed?.name || { zh: '', en: '', ja: '' };
+          const message = parsed?.message || { zh: '', en: '', ja: '' };
+          const item: MenuItem = { id: bo.id, icon: bo.icon || 'HelpCircle', label, message, level: 1, children: [] };
+          return item;
+        });
+        setMenuItems(list);
+      }
+
       setEditingItem(null);
+      setIsEditModalOpen(false);
+      showSuccess('快捷菜单已保存');
+    } catch (e) {
+      console.error(e);
+      showError('保存失败');
     }
   };
 
   // 取消编辑
   const cancelEdit = () => {
     setEditingItem(null);
+    setIsEditModalOpen(false);
   };
 
-  // 删除菜单项
-  const deleteItem = (id: number) => {
-    if (confirm('确定要删除这个菜单项吗？')) {
-      setMenuItems(menuItems.filter(item => item.id !== id));
-      setHasChanges(true);
+  // 删除菜单项（使用确认弹窗）
+  const requestDeleteItem = (item: MenuItem) => {
+    setItemToDelete(item);
+    setShowDeleteConfirm(true);
+  };
+
+  const cancelDeleteItem = () => {
+    setShowDeleteConfirm(false);
+    setItemToDelete(null);
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete) return;
+    try {
+      const res = await quickMenuApi.delete({ id: itemToDelete.id });
+      if (res.statusCode === 200 && res.data) {
+        // 刷新列表
+        const listRes = await quickMenuApi.list();
+        if (listRes.statusCode === 200) {
+          const list = (listRes.data as QuickMenuItemBO[]).map((bo) => {
+            let parsed: QuickMenuContent | null = null;
+            try { parsed = bo.content ? JSON.parse(bo.content) : null; } catch { parsed = null; }
+            const label = parsed?.name || { zh: '', en: '', ja: '' };
+            const message = parsed?.message || { zh: '', en: '', ja: '' };
+            return { id: bo.id, icon: bo.icon || 'HelpCircle', label, message, level: 1, children: [] } as MenuItem;
+          });
+          setMenuItems(list);
+        }
+        if (selectedItem && selectedItem.id === itemToDelete.id) {
+          setSelectedItem(null);
+        }
+        showSuccess('已删除快捷菜单');
+      } else {
+        showError('删除失败');
+      }
+    } catch (e) {
+      console.error(e);
+      showError('删除失败');
+    } finally {
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
     }
   };
 
-  // 添加新菜单项
+  // 添加新菜单项（仅弹窗，不立即插入）
   const addNewItem = () => {
     const newItem: MenuItem = {
-      id: Date.now(),
+      id: -Date.now(), // 负数表示临时ID
       label: { zh: '新菜单项', en: 'New Item', ja: '新しい項目' },
       icon: 'HelpCircle',
-      template: '',
+      message: { zh: '', en: '', ja: '' },
       level: 1,
       children: []
     };
-    setMenuItems([...menuItems, newItem]);
     setEditingItem(newItem);
-    setHasChanges(true);
-  };
-
-  // 保存菜单配置
-  const saveMenu = () => {
-    console.log('保存菜单配置');
-    // 模拟 API 调用: PUT /config/menu
-    console.log('PUT /config/menu', menuItems);
-    setHasChanges(false);
-    alert('菜单配置已保存！');
-  };
-
-  // 预览菜单
-  const previewMenu = () => {
-    console.log('预览菜单');
-    alert('预览功能正在开发中...');
+    setEditLang('zh');
+    setIsEditModalOpen(true);
   };
 
   return (
@@ -195,28 +264,10 @@ const MenuConfig = () => {
           <h2 className="text-3xl font-bold text-gray-800">菜单配置</h2>
           <p className="text-gray-600 mt-2">配置客人聊天界面的快捷菜单</p>
         </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={previewMenu}
-            data-testid="preview-button"
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center"
-          >
-            <Eye className="mr-2" size={16} />
-            预览
-          </button>
-          <button
-            onClick={saveMenu}
-            data-testid="save-button"
-            disabled={!hasChanges}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-          >
-            <Save className="mr-2" size={16} />
-            保存配置
-          </button>
-        </div>
+        <div />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* 菜单树结构 */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow">
@@ -239,6 +290,23 @@ const MenuConfig = () => {
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, index)}
                       onDragEnd={handleDragEnd}
+                      onClick={async () => {
+                        // 选中并尝试加载详情
+                        setSelectedItem(item);
+                        try {
+                          const res = await quickMenuApi.detail(item.id);
+                          if (res.statusCode === 200 && res.data) {
+                            const bo = res.data as QuickMenuItemBO;
+                            let content: QuickMenuContent | null = null;
+                            try { content = bo.content ? JSON.parse(bo.content) : null; } catch { content = null; }
+                            const label = content?.name || { zh: '', en: '', ja: '' };
+                            const message = content?.message || { zh: '', en: '', ja: '' };
+                            setSelectedItem({ id: bo.id, icon: bo.icon || 'HelpCircle', label, message, level: 1, children: [] });
+                          }
+                        } catch {
+                          // ignore, 保持列表数据
+                        }
+                      }}
                       className={`bg-gray-50 rounded-lg p-4 cursor-move hover:bg-gray-100 transition-colors ${
                         item.level > 1 ? 'ml-8' : ''
                       }`}
@@ -260,7 +328,7 @@ const MenuConfig = () => {
                             <Edit size={16} />
                           </button>
                           <button
-                            onClick={() => deleteItem(item.id)}
+                            onClick={() => requestDeleteItem(item)}
                             className="p-1 text-red-600 hover:bg-red-50 rounded"
                           >
                             <Trash2 size={16} />
@@ -304,139 +372,166 @@ const MenuConfig = () => {
           </div>
         </div>
 
-        {/* 编辑面板 */}
-        <div>
-          {editingItem && (
-            <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-800">编辑菜单项</h3>
-              </div>
-              <div className="p-6 space-y-4">
-                {/* 图标选择 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">图标</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {availableIcons.map((icon) => {
-                      const IconComponent = iconMap[icon as keyof typeof iconMap];
-                      return (
+        {/* 右侧详情（常驻） */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow sticky top-24">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-800">菜单详情</h3>
+            </div>
+            <div className="p-6 space-y-5">
+              {!selectedItem ? (
+                <div className="text-center text-gray-500 py-12">
+                  请选择左侧的一个菜单项查看详情
+                </div>
+              ) : (
+                <>
+                  {/* 标题与图标 */}
+                  <div className="flex items-center space-x-3">
+                    {(() => { const Icon = iconMap[selectedItem.icon as keyof typeof iconMap]; return Icon ? <Icon className="text-gray-700" /> : null; })()}
+                    <div>
+                      <div className="text-gray-800 font-medium">{selectedItem.label.zh || '未命名'}</div>
+                      <div className="text-gray-400 text-sm">{selectedItem.label.en}</div>
+                    </div>
+                  </div>
+
+                  {/* 语言切换 */}
+                  <div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['zh','en','ja'] as const).map(lang => (
                         <button
-                          key={icon}
-                          onClick={() => setEditingItem({ ...editingItem, icon })}
-                          className={`p-3 border-2 rounded-lg hover:border-blue-400 transition-colors ${
-                            editingItem.icon === icon ? 'bg-blue-100 border-blue-600' : 'bg-white border-gray-300'
-                          }`}
+                          key={lang}
+                          onClick={() => setDetailLang(lang)}
+                          className={`py-2 rounded-lg transition-colors ${detailLang === lang ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
                         >
-                          {IconComponent && <IconComponent className="text-xl" />}
+                          {lang === 'zh' ? '简体中文' : lang === 'en' ? 'English' : '日本語'}
                         </button>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* 多语言标签 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">标签文本</label>
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={editingItem.label.zh}
-                      onChange={(e) => setEditingItem({
-                        ...editingItem,
-                        label: { ...editingItem.label, zh: e.target.value }
-                      })}
-                      placeholder="中文"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <input
-                      type="text"
-                      value={editingItem.label.en}
-                      onChange={(e) => setEditingItem({
-                        ...editingItem,
-                        label: { ...editingItem.label, en: e.target.value }
-                      })}
-                      placeholder="English"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <input
-                      type="text"
-                      value={editingItem.label.ja}
-                      onChange={(e) => setEditingItem({
-                        ...editingItem,
-                        label: { ...editingItem.label, ja: e.target.value }
-                      })}
-                      placeholder="日本語"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                  {/* 名称与消息卡片化展示 */}
+                  <div className="space-y-4">
+                    <div className="border border-gray-200 rounded-lg">
+                      <div className="px-4 py-2 border-b border-gray-100 text-sm text-gray-500">名称</div>
+                      <div className="px-4 py-3 text-gray-800 break-words min-h-[28px]">{selectedItem.label[detailLang] || '—'}</div>
+                    </div>
+                    <div className="border border-gray-200 rounded-lg">
+                      <div className="px-4 py-2 border-b border-gray-100 text-sm text-gray-500">消息</div>
+                      <div className="px-4 py-3 text-gray-800 whitespace-pre-wrap break-words min-h-[56px]">{selectedItem.message[detailLang] || '—'}</div>
+                    </div>
                   </div>
-                </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
-                {/* 模板消息 */}
+      {/* 编辑弹窗 */}
+      {isEditModalOpen && editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black bg-opacity-30" onClick={cancelEdit} />
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">编辑菜单项</h3>
+              <button onClick={cancelEdit} className="text-gray-500 hover:text-gray-700">×</button>
+            </div>
+            <div className="p-6 space-y-5">
+              {/* 图标选择 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">图标</label>
+                <div className="grid grid-cols-8 gap-2">
+                  {availableIcons.map((icon) => {
+                    const IconComponent = iconMap[icon as keyof typeof iconMap];
+                    return (
+                      <button
+                        key={icon}
+                        onClick={() => setEditingItem(prev => prev ? { ...prev, icon } : prev)}
+                        className={`p-3 border-2 rounded-lg hover:border-blue-400 transition-colors ${
+                          editingItem!.icon === icon ? 'bg-blue-100 border-blue-600' : 'bg-white border-gray-300'
+                        }`}
+                        title={icon}
+                      >
+                        {IconComponent && <IconComponent className="text-xl" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 多语言切换按钮 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">编辑语言</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['zh','en','ja'] as const).map(lang => (
+                    <button
+                      key={lang}
+                      onClick={() => setEditLang(lang)}
+                      className={`py-2 rounded-lg transition-colors ${editLang === lang ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                      {lang === 'zh' ? '简体中文' : lang === 'en' ? 'English' : '日本語'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 当前语言的名称与消息 */}
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">快捷消息模板</label>
-                  <textarea
-                    value={editingItem.template}
-                    onChange={(e) => setEditingItem({ ...editingItem, template: e.target.value })}
-                    rows={3}
-                    placeholder="点击菜单时发送的消息内容"
+                  <label className="block text-sm font-medium text-gray-700 mb-2">名称（{editLang === 'zh' ? '中文' : editLang === 'en' ? 'English' : '日本語'}）</label>
+                  <input
+                    type="text"
+                    value={editingItem!.label[editLang]}
+                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, label: { ...prev.label, [editLang]: e.target.value } } : prev)}
+                    placeholder={editLang === 'zh' ? '中文' : editLang === 'en' ? 'English' : '日本語'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-
-                {/* 操作按钮 */}
-                <div className="flex space-x-3">
-                  <button
-                    onClick={saveItemEdit}
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    保存
-                  </button>
-                  <button
-                    onClick={cancelEdit}
-                    className="flex-1 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    取消
-                  </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">消息（{editLang === 'zh' ? '中文' : editLang === 'en' ? 'English' : '日本語'}）</label>
+                  <textarea
+                    value={editingItem!.message[editLang]}
+                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, message: { ...prev.message, [editLang]: e.target.value } } : prev)}
+                    rows={4}
+                    placeholder={editLang === 'zh' ? '中文消息' : editLang === 'en' ? 'English message' : '日本語のメッセージ'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* 语言切换预览 */}
-          <div className="bg-white rounded-lg shadow mt-6">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">语言预览</h3>
-            </div>
-            <div className="p-6">
-              <div className="space-y-2">
+              {/* 操作按钮 */}
+              <div className="flex space-x-3 pt-2">
                 <button
-                  onClick={() => setPreviewLang('zh')}
-                  className={`w-full py-2 rounded-lg transition-colors ${
-                    previewLang === 'zh' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                  }`}
+                  onClick={saveItemEdit}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  简体中文
+                  保存
                 </button>
                 <button
-                  onClick={() => setPreviewLang('en')}
-                  className={`w-full py-2 rounded-lg transition-colors ${
-                    previewLang === 'en' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                  }`}
+                  onClick={cancelEdit}
+                  className="flex-1 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                 >
-                  English
-                </button>
-                <button
-                  onClick={() => setPreviewLang('ja')}
-                  className={`w-full py-2 rounded-lg transition-colors ${
-                    previewLang === 'ja' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  日本語
+                  取消
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* 固定详情已移至右侧常驻栏位 */}
+
+      {/* 删除确认弹窗 */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="确认删除"
+        message={`确定要删除菜单 "${itemToDelete?.label.zh || ''}" 吗？此操作不可撤销。`}
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={confirmDeleteItem}
+        onCancel={cancelDeleteItem}
+        type="danger"
+      />
     </>
   );
 };

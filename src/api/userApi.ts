@@ -22,7 +22,6 @@ interface UserCreateRequest {
   phone?: string;
   roleIds?: number[];
   deptId?: number;
-  superAdmin?: boolean;
 }
 
 interface UserUpdateRequest {
@@ -35,7 +34,6 @@ interface UserUpdateRequest {
   phone?: string;
   roleIds?: number[];
   deptId?: number;
-  superAdmin?: boolean;
 }
 
 interface UserDeleteRequest {
@@ -72,7 +70,6 @@ interface UserDetailResponse {
   employeeNumber?: string;
   email?: string;
   phone?: string;
-  superAdmin: boolean;
   active: number;
   department?: UserDepartmentInfo;
   roles?: UserRoleInfo[];
@@ -92,7 +89,10 @@ interface UserItem {
   displayName: string;
   employeeNumber?: string;
   active: number;
+  createTime: number;
+  updateTime: number;
   department?: UserDepartmentInfo;
+  userRoles?: UserRoleInfo[];
 }
 
 export const userApi = {

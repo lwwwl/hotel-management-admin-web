@@ -1,0 +1,84 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Hotel Management - Menu API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "http://localhost:7788" }
+  ],
+  "paths": {
+    "/menu/list": {
+      "post": {
+        "summary": "List all menus",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MenuListRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMenuListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponseMenuListResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "integer", "format": "int64" },
+          "statusCode": { "type": "integer" },
+          "message": { "type": "string" },
+          "data": { "$ref": "#/components/schemas/MenuListResponse" },
+          "error": { "type": "string", "nullable": true }
+        },
+        "required": ["timestamp", "statusCode", "message"]
+      },
+      "MenuListRequest": {
+        "type": "object",
+        "properties": {
+          "onlyVisible": { "type": "boolean" },
+          "type": { "type": "integer" }
+        }
+      },
+      "MenuListResponse": {
+        "type": "object",
+        "properties": {
+          "menus": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MenuItem" }
+          }
+        }
+      },
+      "MenuItem": {
+        "type": "object",
+        "properties": {
+          "menuId": { "type": "integer", "format": "int64" },
+          "menuName": { "type": "string" },
+          "icon": { "type": "string" },
+          "sortOrder": { "type": "integer" },
+          "parentId": { "type": "integer", "format": "int64" },
+          "path": { "type": "string" },
+          "type": { "type": "integer" },
+          "visible": { "type": "boolean" }
+        },
+        "required": ["menuId", "menuName"]
+      }
+    }
+  }
+}
+
+

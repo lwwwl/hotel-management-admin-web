@@ -1,0 +1,949 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "角色管理 API",
+    "description": "酒店管理系统角色管理相关接口",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "{{managementLocalUrl}}",
+      "description": "管理后台本地服务"
+    }
+  ],
+  "security": [
+    {
+      "X-User-Id": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "角色管理",
+      "description": "角色相关的增删改查操作"
+    }
+  ],
+  "paths": {
+    "/role/create": {
+      "post": {
+        "tags": ["角色管理"],
+        "summary": "创建角色",
+        "description": "创建新的角色，包含角色名称、描述、菜单权限和用户关联",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID",
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": 1,
+                  "error": null
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 500,
+                  "message": "创建角色失败",
+                  "data": null,
+                  "error": "具体错误信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/role/update": {
+      "post": {
+        "tags": ["角色管理"],
+        "summary": "更新角色基本信息",
+        "description": "更新现有角色的基本信息，包括名称和描述",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID",
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": true,
+                  "error": null
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 500,
+                  "message": "更新角色失败",
+                  "data": null,
+                  "error": "具体错误信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/role/updateUser": {
+      "post": {
+        "tags": ["角色管理"],
+        "summary": "更新角色关联用户",
+        "description": "更新角色关联的用户成员，会删除原有关联并添加新的关联",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID",
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleUpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": true,
+                  "error": null
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "角色不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 404,
+                  "message": "更新角色用户失败",
+                  "data": null,
+                  "error": "角色不存在"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 500,
+                  "message": "更新角色用户失败",
+                  "data": null,
+                  "error": "具体错误信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/role/updateMenu": {
+      "post": {
+        "tags": ["角色管理"],
+        "summary": "更新角色关联菜单",
+        "description": "更新角色关联的菜单权限，会删除原有关联并添加新的关联",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID",
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleUpdateMenuRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": true,
+                  "error": null
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "角色不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 404,
+                  "message": "更新角色菜单失败",
+                  "data": null,
+                  "error": "角色不存在"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 500,
+                  "message": "更新角色菜单失败",
+                  "data": null,
+                  "error": "具体错误信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/role/delete": {
+      "post": {
+        "tags": ["角色管理"],
+        "summary": "删除角色",
+        "description": "根据角色ID删除指定角色",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID",
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": true,
+                  "error": null
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 500,
+                  "message": "删除角色失败",
+                  "data": null,
+                  "error": "具体错误信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/role/list": {
+      "post": {
+        "tags": ["角色管理"],
+        "summary": "获取角色列表",
+        "description": "根据关键词搜索获取角色列表",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID",
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": {
+                    "roles": [
+                      {
+                        "roleId": 1,
+                        "name": "管理员",
+                        "description": "系统管理员角色",
+                        "createTime": 1703123456789,
+                        "updateTime": 1703123456789
+                      }
+                    ]
+                  },
+                  "error": null
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 500,
+                  "message": "获取角色列表失败",
+                  "data": null,
+                  "error": "具体错误信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/role/detail": {
+      "post": {
+        "tags": ["角色管理"],
+        "summary": "获取角色详情",
+        "description": "根据角色ID获取角色的详细信息，包括基本信息、关联的菜单列表和用户列表（含部门信息）",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID",
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleDetailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": {
+                    "roleInfo": {
+                      "roleId": 1,
+                      "name": "管理员",
+                      "description": "系统管理员角色",
+                      "memberCount": 2,
+                      "createTime": 1703123456789,
+                      "updateTime": 1703123456789
+                    },
+                    "menus": [
+                      {
+                        "menuId": 1,
+                        "menuName": "用户管理",
+                        "icon": "user",
+                        "sortOrder": 1
+                      }
+                    ],
+                    "users": [
+                      {
+                        "userId": 1,
+                        "username": "admin",
+                        "displayName": "管理员",
+                        "employeeNumber": "EMP001",
+                        "active": 1,
+                        "departments": [
+                          {
+                            "deptId": 1,
+                            "deptName": "技术部"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 400,
+                  "message": "获取角色详情失败",
+                  "data": null,
+                  "error": "角色ID不能为空"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "角色不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 404,
+                  "message": "获取角色详情失败",
+                  "data": null,
+                  "error": "角色不存在"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "timestamp": 1703123456789,
+                  "statusCode": 500,
+                  "message": "获取角色详情失败",
+                  "data": null,
+                  "error": "具体错误信息"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RoleCreateRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员"
+          },
+          "description": {
+            "type": "string",
+            "description": "角色描述",
+            "example": "系统管理员角色，拥有所有权限"
+          },
+          "menuIdList": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "关联的菜单ID列表",
+            "example": [1, 2, 3]
+          },
+          "userIdList": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "关联的用户ID列表",
+            "example": [1, 2, 3]
+          }
+        }
+      },
+      "RoleUpdateRequest": {
+        "type": "object",
+        "required": ["roleId"],
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员"
+          },
+          "description": {
+            "type": "string",
+            "description": "角色描述",
+            "example": "系统管理员角色，拥有所有权限"
+          }
+        }
+      },
+      "RoleDeleteRequest": {
+        "type": "object",
+        "required": ["roleId"],
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          }
+        }
+      },
+      "RoleUpdateUserRequest": {
+        "type": "object",
+        "required": ["roleId"],
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          },
+          "userIdList": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "关联的用户ID列表",
+            "example": [1, 2, 3]
+          }
+        }
+      },
+      "RoleUpdateMenuRequest": {
+        "type": "object",
+        "required": ["roleId"],
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          },
+          "menuIdList": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "关联的菜单ID列表",
+            "example": [1, 2, 3]
+          }
+        }
+      },
+      "RoleListRequest": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "description": "搜索关键词，用于模糊匹配角色名称或描述",
+            "example": "管理员"
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1703123456789
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "HTTP状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "success"
+          },
+          "data": {
+            "description": "响应数据，具体类型根据接口而定"
+          },
+          "error": {
+            "type": "string",
+            "description": "错误信息，成功时为null",
+            "example": null
+          }
+        }
+      },
+      "RoleInfo": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员"
+          },
+          "description": {
+            "type": "string",
+            "description": "角色描述",
+            "example": "系统管理员角色"
+          },
+          "createTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "创建时间戳",
+            "example": 1703123456789
+          },
+          "updateTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "更新时间戳",
+            "example": 1703123456789
+          }
+        }
+      },
+      "RoleDetailRequest": {
+        "type": "object",
+        "required": ["roleId"],
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          }
+        }
+      },
+      "RoleDetailResponse": {
+        "type": "object",
+        "properties": {
+          "roleInfo": {
+            "$ref": "#/components/schemas/RoleBasicInfo"
+          },
+          "menus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuDetailInfo"
+            },
+            "description": "关联的菜单列表"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDetailInfo"
+            },
+            "description": "关联的用户列表（含部门信息）"
+          }
+        }
+      },
+      "RoleBasicInfo": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "角色ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员"
+          },
+          "description": {
+            "type": "string",
+            "description": "角色描述",
+            "example": "系统管理员角色"
+          },
+          "memberCount": {
+            "type": "integer",
+            "description": "成员数量",
+            "example": 2
+          },
+          "createTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "创建时间戳",
+            "example": 1703123456789
+          },
+          "updateTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "更新时间戳",
+            "example": 1703123456789
+          }
+        }
+      },
+      "MenuDetailInfo": {
+        "type": "object",
+        "properties": {
+          "menuId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "菜单ID",
+            "example": 1
+          },
+          "menuName": {
+            "type": "string",
+            "description": "菜单名称",
+            "example": "用户管理"
+          },
+          "icon": {
+            "type": "string",
+            "description": "图标",
+            "example": "user"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "排序",
+            "example": 1
+          }
+        }
+      },
+      "UserDetailInfo": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "admin"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "姓名",
+            "example": "管理员"
+          },
+          "employeeNumber": {
+            "type": "string",
+            "description": "工号",
+            "example": "EMP001"
+          },
+          "active": {
+            "type": "integer",
+            "description": "状态（0-禁用，1-启用）",
+            "example": 1
+          },
+          "departments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DepartmentInfo"
+            },
+            "description": "部门信息列表"
+          }
+        }
+      },
+      "DepartmentInfo": {
+        "type": "object",
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称",
+            "example": "技术部"
+          }
+        }
+      },
+      "RoleListResponse": {
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleInfo"
+            },
+            "description": "角色列表"
+          }
+        }
+      }
+    }
+  }
+}

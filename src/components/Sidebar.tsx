@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Building, BarChart3, List, Users, Settings } from 'lucide-react';
+import { Building, BarChart3, List, Users, Settings, Shield } from 'lucide-react';
 import { menuItems } from '../router';
 
 // 图标映射
@@ -7,6 +7,8 @@ const iconMap = {
   Dashboard: BarChart3,
   List: List,
   Users: Users,
+  Building: Building,
+  Shield: Shield,
   Settings: Settings
 };
 

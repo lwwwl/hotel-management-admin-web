@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { userApi } from '../api/userApi';
 import { transformUserItemToUser, transformUserFormToCreateRequest, transformUserFormToUpdateRequest } from '../utils/userDataTransform';
+import { useToast } from '../components/ToastProvider';
+import ConfirmModal from '../components/ConfirmModal';
 import type { User, Role, Department, UserForm } from '../api/types';
 
 // Mock数据（保留作为备用）
@@ -28,6 +30,7 @@ const MOCK_DEPARTMENTS = [
 ];
 
 const UserManagement = () => {
+  const { showSuccess, showError, showInfo } = useToast();
   const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'departments'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([...MOCK_ROLES]);
@@ -53,7 +56,11 @@ const UserManagement = () => {
   const [hasMore, setHasMore] = useState(false);
   const [lastCreateTime, setLastCreateTime] = useState<number | null>(null);
   const [lastUserId, setLastUserId] = useState<number | null>(null);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(500);
+  
+  // 确认弹窗状态
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   // 初始化加载用户数据
   useEffect(() => {
@@ -92,8 +99,18 @@ const UserManagement = () => {
         
         // 更新分页状态
         setHasMore(response.data.hasMore);
-        setLastCreateTime(response.data.lastCreateTime || null);
-        setLastUserId(response.data.lastUserId || null);
+        
+        // 如果有数据，使用最后一条数据的id和createtime作为下一页的游标
+        if (transformedUsers.length > 0) {
+          const lastUser = transformedUsers[transformedUsers.length - 1];
+          // 从原始数据中获取createTime（毫秒时间戳）
+          const lastUserItem = response.data.users[response.data.users.length - 1];
+          setLastCreateTime(lastUserItem.createTime);
+          setLastUserId(lastUser.id);
+        } else {
+          setLastCreateTime(null);
+          setLastUserId(null);
+        }
       } else {
         console.error('Failed to load users:', response.message);
         setError('加载用户列表失败');
@@ -101,16 +118,6 @@ const UserManagement = () => {
     } catch (err) {
       console.error('Error loading users:', err);
       setError('加载用户列表时发生错误');
-      // 如果API失败，使用模拟数据
-      if (reset) {
-        const mockUsers: User[] = [
-          { id: 1, name: '张三', username: 'zhangsan', employeeId: 'E001', role: 'admin', department: '管理部', status: 'active', lastLogin: '2024-01-01 10:30' },
-          { id: 2, name: '李四', username: 'lisi', employeeId: 'E002', role: 'agent', department: '前台', status: 'active', lastLogin: '2024-01-01 09:15' },
-          { id: 3, name: '王五', username: 'wangwu', employeeId: 'E003', role: 'staff', department: '客房部', status: 'active', lastLogin: '2024-01-01 08:45' },
-          { id: 4, name: '赵六', username: 'zhaoliu', employeeId: 'E004', role: 'staff', department: '餐饮部', status: 'inactive', lastLogin: '2023-12-30 18:00' }
-        ];
-        setUsers(mockUsers);
-      }
     } finally {
       setLoading(false);
     }
@@ -238,10 +245,10 @@ const UserManagement = () => {
         const response = await userApi.updateUser(updateRequest);
         
         if (response.statusCode === 200 && response.data) {
-          alert('用户信息已更新');
+          showSuccess('用户信息已更新');
           loadUsers(); // 重新加载用户列表
         } else {
-          setError('更新用户失败: ' + response.message);
+          showError('更新用户失败', response.message);
         }
       } else {
         // 创建用户
@@ -249,10 +256,10 @@ const UserManagement = () => {
         const response = await userApi.createUser(createRequest);
         
         if (response.statusCode === 200 && response.data) {
-          alert('用户创建成功');
+          showSuccess('用户创建成功');
           loadUsers(); // 重新加载用户列表
         } else {
-          setError('创建用户失败: ' + response.message);
+          showError('创建用户失败', response.message);
         }
       }
       
@@ -274,14 +281,10 @@ const UserManagement = () => {
       const response = await userApi.toggleUserLock({ userId: user.id });
       
       if (response.statusCode === 200 && response.data) {
-        const newStatus: 'active' | 'inactive' = user.status === 'active' ? 'inactive' : 'active';
-        const updatedUsers = users.map(u => 
-          u.id === user.id ? { ...u, status: newStatus } : u
-        );
-        setUsers(updatedUsers);
-        alert(`用户已${newStatus === 'active' ? '启用' : '禁用'}`);
+        showSuccess(`用户已${user.status === 'active' ? '禁用' : '启用'}`);
+        loadUsers(); // 重新加载用户列表以获取最新数据
       } else {
-        setError('切换用户状态失败: ' + response.message);
+        showError('切换用户状态失败', response.message);
       }
     } catch (err) {
       console.error('Error toggling user status:', err);
@@ -291,38 +294,52 @@ const UserManagement = () => {
     }
   };
 
-  // 删除用户
-  const deleteUser = async (user: User) => {
-    if (confirm(`确定要删除用户 ${user.name} 吗？`)) {
-      try {
-        setLoading(true);
-        setError(null);
+  // 打开删除确认弹窗
+  const openDeleteConfirm = (user: User) => {
+    setUserToDelete(user);
+    setShowConfirmModal(true);
+  };
 
-        const response = await userApi.deleteUser({ userId: user.id });
-        
-        if (response.statusCode === 200 && response.data) {
-          setUsers(users.filter(u => u.id !== user.id));
-          alert('用户删除成功');
-        } else {
-          setError('删除用户失败: ' + response.message);
-        }
-      } catch (err) {
-        console.error('Error deleting user:', err);
-        setError('删除用户时发生错误');
-      } finally {
-        setLoading(false);
+  // 确认删除用户
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await userApi.deleteUser({ userId: userToDelete.id });
+      
+      if (response.statusCode === 200 && response.data) {
+        showSuccess('用户删除成功');
+        loadUsers(); // 重新加载用户列表以获取最新数据
+      } else {
+        showError('删除用户失败', response.message);
       }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError('删除用户时发生错误');
+    } finally {
+      setLoading(false);
+      setShowConfirmModal(false);
+      setUserToDelete(null);
     }
+  };
+
+  // 取消删除
+  const cancelDelete = () => {
+    setShowConfirmModal(false);
+    setUserToDelete(null);
   };
 
   // 添加角色
   const openAddRoleModal = () => {
-    alert('添加角色功能开发中...');
+    showInfo('添加角色功能开发中...');
   };
 
   // 添加部门
   const openAddDepartmentModal = () => {
-    alert('添加部门功能开发中...');
+    showInfo('添加部门功能开发中...');
   };
 
   return (
@@ -460,7 +477,7 @@ const UserManagement = () => {
                       <th className="pb-3 font-medium">角色</th>
                       <th className="pb-3 font-medium">部门</th>
                       <th className="pb-3 font-medium">状态</th>
-                      <th className="pb-3 font-medium">最后登录</th>
+                      <th className="pb-3 font-medium">创建时间</th>
                       <th className="pb-3 font-medium">操作</th>
                     </tr>
                   </thead>
@@ -506,7 +523,7 @@ const UserManagement = () => {
                             <span>{user.status === 'active' ? '启用' : '禁用'}</span>
                           </span>
                         </td>
-                        <td className="py-4 text-gray-600">{user.lastLogin}</td>
+                        <td className="py-4 text-gray-600">{user.createTime}</td>
                         <td className="py-4">
                           <div className="flex items-center space-x-2">
                             <button
@@ -524,13 +541,13 @@ const UserManagement = () => {
                               }`}
                             >
                               {user.status === 'active' ? (
-                                <Lock size={16} />
-                              ) : (
                                 <Unlock size={16} />
+                              ) : (
+                                <Lock size={16} />
                               )}
                             </button>
                             <button
-                              onClick={() => deleteUser(user)}
+                              onClick={() => openDeleteConfirm(user)}
                               disabled={loading}
                               className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
                             >
@@ -695,7 +712,6 @@ const UserManagement = () => {
                 <select
                   value={userForm.role}
                   onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
-                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">请选择</option>
@@ -710,7 +726,6 @@ const UserManagement = () => {
                 <select
                   value={userForm.department}
                   onChange={(e) => setUserForm({ ...userForm, department: e.target.value })}
-                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">请选择</option>
@@ -741,6 +756,19 @@ const UserManagement = () => {
           </div>
         </div>
       )}
+
+      {/* 删除确认弹窗 */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="确认删除"
+        message={`确定要删除用户 "${userToDelete?.name}" 吗？此操作不可撤销。`}
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={confirmDeleteUser}
+        onCancel={cancelDelete}
+        type="danger"
+        loading={loading}
+      />
     </>
   );
 };

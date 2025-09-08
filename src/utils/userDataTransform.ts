@@ -14,15 +14,29 @@ interface UserFormData {
  * 直接使用后端字段，避免字段转换
  */
 export const transformUserItemToUser = (userItem: UserItem): User => {
+  // 获取第一个角色名称作为主要角色显示
+  const primaryRole = userItem.userRoles && userItem.userRoles.length > 0 
+    ? userItem.userRoles[0].roleName 
+    : 'staff';
+  
   return {
     id: userItem.userId,
     name: userItem.displayName,
     username: userItem.username,
     employeeId: userItem.employeeNumber || '',
-    role: 'staff', // 默认角色，实际应该从roles字段获取
+    role: primaryRole, // 使用第一个角色作为主要角色
     department: userItem.department?.deptName || '',
     status: userItem.active === 1 ? 'active' : 'inactive',
-    lastLogin: new Date().toLocaleString('zh-CN') // 模拟最后登录时间
+    lastLogin: new Date().toLocaleString('zh-CN'), // 模拟最后登录时间
+    createTime: new Date(userItem.createTime).toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }),
+    userRoles: userItem.userRoles // 添加userRoles字段列表
   };
 };
 
@@ -55,7 +69,6 @@ export const transformUserFormToCreateRequest = (userForm: UserFormData, passwor
     phone: '13800138000', // 模拟手机号
     roleIds: [1], // 默认角色ID
     deptId: parseInt(userForm.department) || 1,
-    superAdmin: false
   };
 };
 
@@ -72,6 +85,5 @@ export const transformUserFormToUpdateRequest = (userId: number, userForm: UserF
     phone: '13800138000', // 模拟手机号
     roleIds: [1], // 默认角色ID
     deptId: parseInt(userForm.department) || 1,
-    superAdmin: false
   };
 };

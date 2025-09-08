@@ -1,0 +1,806 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "酒店管理系统 - 部门管理 API",
+    "description": "酒店管理系统部门管理相关接口，包括部门的增删改查、成员管理等功能",
+    "version": "1.0.0",
+    "contact": {
+      "name": "酒店管理系统开发团队",
+      "email": "dev@hotel-management.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "开发环境服务器"
+    }
+  ],
+  "tags": [
+    {
+      "name": "部门管理",
+      "description": "部门相关的所有操作接口"
+    }
+  ],
+  "paths": {
+    "/dept/select-list": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "获取部门选择列表",
+        "description": "获取用于下拉选择的部门列表，包含全部部门选项",
+        "operationId": "getDeptSelectList",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptSelectListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取部门选择列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDeptSelectList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dept/list": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "获取部门列表",
+        "description": "获取包含详细信息的部门列表，包括部门领导、成员数量等",
+        "operationId": "getDeptList",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取部门列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDeptList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dept/detail": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "获取部门详情",
+        "description": "根据部门ID获取部门的详细信息，包括部门成员列表",
+        "operationId": "getDeptDetail",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptDetailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取部门详情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDeptDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "部门不存在或请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dept/create": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "创建部门",
+        "description": "创建新的部门，并自动将指定领导添加到该部门",
+        "operationId": "createDept",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "部门创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dept/update": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "更新部门",
+        "description": "更新指定部门的信息，包括部门名称和领导",
+        "operationId": "updateDept",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "部门更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "部门不存在或请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dept/delete": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "删除部门",
+        "description": "删除指定的部门，同时删除该部门的所有成员关联",
+        "operationId": "deleteDept",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "部门删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dept/add-user": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "添加部门成员",
+        "description": "向指定部门添加一个或多个成员",
+        "operationId": "addDeptUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptAddUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成员添加成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "部门不存在或请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dept/remove-user": {
+      "post": {
+        "tags": ["部门管理"],
+        "summary": "移除部门成员",
+        "description": "从指定部门移除一个或多个成员",
+        "operationId": "removeDeptUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeptRemoveUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成员移除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "部门不存在、没有待移除成员或请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DeptSelectListRequest": {
+        "type": "object",
+        "description": "部门选择列表请求对象",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "DeptListRequest": {
+        "type": "object",
+        "description": "部门列表请求对象",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "DeptDetailRequest": {
+        "type": "object",
+        "description": "部门详情请求对象",
+        "required": ["deptId"],
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          }
+        }
+      },
+      "DeptCreateRequest": {
+        "type": "object",
+        "description": "创建部门请求对象",
+        "required": ["deptName", "leaderId"],
+        "properties": {
+          "deptName": {
+            "type": "string",
+            "description": "部门名称",
+            "example": "前台部"
+          },
+          "leaderId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门领导用户ID",
+            "example": 1
+          }
+        }
+      },
+      "DeptUpdateRequest": {
+        "type": "object",
+        "description": "更新部门请求对象",
+        "required": ["deptId"],
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称",
+            "example": "前台部"
+          },
+          "leaderId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门领导用户ID",
+            "example": 1
+          }
+        }
+      },
+      "DeptDeleteRequest": {
+        "type": "object",
+        "description": "删除部门请求对象",
+        "required": ["deptId"],
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          }
+        }
+      },
+      "DeptAddUserRequest": {
+        "type": "object",
+        "description": "添加部门成员请求对象",
+        "required": ["deptId", "userIdList"],
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "userIdList": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID列表",
+            "example": [1, 2, 3]
+          }
+        }
+      },
+      "DeptRemoveUserRequest": {
+        "type": "object",
+        "description": "移除部门成员请求对象",
+        "required": ["deptId", "userIdList"],
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "userIdList": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "用户ID列表",
+            "example": [1, 2, 3]
+          }
+        }
+      },
+      "DeptInfo": {
+        "type": "object",
+        "description": "部门基本信息",
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称",
+            "example": "前台部"
+          }
+        }
+      },
+      "DeptListItemBO": {
+        "type": "object",
+        "description": "部门列表项业务对象",
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称",
+            "example": "前台部"
+          },
+          "leaderId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门领导用户ID",
+            "example": 1
+          },
+          "leaderName": {
+            "type": "string",
+            "description": "部门领导姓名",
+            "example": "张三"
+          },
+          "memberCount": {
+            "type": "integer",
+            "description": "部门成员数量",
+            "example": 5
+          }
+        }
+      },
+      "DeptUserInfo": {
+        "type": "object",
+        "description": "部门用户信息",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用户ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名",
+            "example": "张三"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "zhangsan"
+          }
+        }
+      },
+      "DeptSelectListResponse": {
+        "type": "object",
+        "description": "部门选择列表响应对象",
+        "properties": {
+          "deptList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeptInfo"
+            },
+            "description": "部门列表，包含全部部门选项"
+          }
+        }
+      },
+      "DeptListResponse": {
+        "type": "object",
+        "description": "部门列表响应对象",
+        "properties": {
+          "deptList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeptListItemBO"
+            },
+            "description": "部门详细信息列表"
+          }
+        }
+      },
+      "DeptDetailResponse": {
+        "type": "object",
+        "description": "部门详情响应对象",
+        "properties": {
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID",
+            "example": 1
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称",
+            "example": "前台部"
+          },
+          "leaderId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门领导用户ID",
+            "example": 1
+          },
+          "leaderName": {
+            "type": "string",
+            "description": "部门领导姓名",
+            "example": "张三"
+          },
+          "memberList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeptUserInfo"
+            },
+            "description": "部门成员列表"
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "description": "通用API响应格式",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳",
+            "example": 1640995200000
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息",
+            "example": "success"
+          },
+          "data": {
+            "description": "响应数据"
+          },
+          "error": {
+            "type": "string",
+            "description": "错误信息",
+            "example": null
+          }
+        }
+      },
+      "ApiResponseDeptSelectList": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/DeptSelectListResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseDeptList": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/DeptListResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseDeptDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/DeptDetailResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseString": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "string",
+                "description": "操作结果消息",
+                "example": "操作成功"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseError": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "string",
+                "description": "错误详情",
+                "example": null
+              },
+              "error": {
+                "type": "string",
+                "description": "错误信息",
+                "example": "部门不存在"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

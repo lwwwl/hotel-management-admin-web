@@ -1,0 +1,229 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Hotel Management - Room API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "http://localhost:7788" }
+  ],
+  "paths": {
+    "/room/create": {
+      "post": {
+        "summary": "Create a room",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RoomCreateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponseId" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/room/update": {
+      "post": {
+        "summary": "Update a room",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RoomUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponseBoolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/room/delete": {
+      "post": {
+        "summary": "Delete a room",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RoomDeleteRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponseBoolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/room/detail": {
+      "post": {
+        "summary": "Get room detail",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RoomDetailRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponseHotelRoom" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/room/list": {
+      "post": {
+        "summary": "List rooms (full, no pagination)",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RoomListRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponseHotelRoomArray" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponseId": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "integer", "format": "int64" },
+          "statusCode": { "type": "integer" },
+          "message": { "type": "string" },
+          "data": { "type": "integer", "format": "int64" },
+          "error": { "type": "string", "nullable": true }
+        },
+        "required": ["timestamp", "statusCode", "message"]
+      },
+      "ApiResponseBoolean": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "integer", "format": "int64" },
+          "statusCode": { "type": "integer" },
+          "message": { "type": "string" },
+          "data": { "type": "boolean" },
+          "error": { "type": "string", "nullable": true }
+        },
+        "required": ["timestamp", "statusCode", "message"]
+      },
+      "ApiResponseHotelRoom": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "integer", "format": "int64" },
+          "statusCode": { "type": "integer" },
+          "message": { "type": "string" },
+          "data": { "$ref": "#/components/schemas/HotelRoom" },
+          "error": { "type": "string", "nullable": true }
+        },
+        "required": ["timestamp", "statusCode", "message"]
+      },
+      "ApiResponseHotelRoomArray": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "integer", "format": "int64" },
+          "statusCode": { "type": "integer" },
+          "message": { "type": "string" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HotelRoom" }
+          },
+          "error": { "type": "string", "nullable": true }
+        },
+        "required": ["timestamp", "statusCode", "message"]
+      },
+      "RoomCreateRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "active": { "type": "integer", "format": "int32", "nullable": true }
+        },
+        "required": ["name"]
+      },
+      "RoomUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "name": { "type": "string", "nullable": true },
+          "active": { "type": "integer", "format": "int32", "nullable": true }
+        },
+        "required": ["id"]
+      },
+      "RoomDeleteRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" }
+        },
+        "required": ["id"]
+      },
+      "RoomDetailRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" }
+        },
+        "required": ["id"]
+      },
+      "RoomListRequest": {
+        "type": "object",
+        "properties": {
+          "active": { "type": "integer", "format": "int32", "nullable": true },
+          "keyword": { "type": "string", "nullable": true }
+        }
+      },
+      "HotelRoom": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "name": { "type": "string" },
+          "active": { "type": "integer", "format": "int32" },
+          "createTime": { "type": "string", "format": "date-time" },
+          "updateTime": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "name", "active"]
+      }
+    }
+  }
+}
+
+
