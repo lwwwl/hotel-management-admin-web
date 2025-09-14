@@ -122,7 +122,7 @@ const searchUsers = async () => {
 ## 配置说明
 
 ### 1. API基础URL
-- 当前配置: `http://localhost:7788`
+- 当前配置: `http://111.223.37.162:7788`
 - 可在 `src/api/axiosConfig.ts` 中修改
 
 ### 2. 请求头配置

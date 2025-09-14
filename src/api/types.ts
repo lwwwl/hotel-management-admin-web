@@ -276,6 +276,12 @@ export interface DeptDetailResponse {
   memberList: DeptUserInfo[];
 }
 
+// 部门表单类型
+export interface DeptForm {
+  deptName: string;
+  leaderId: number;
+}
+
 // 前端组件使用的用户类型（兼容现有代码）
 export interface User {
   id: number;

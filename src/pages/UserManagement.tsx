@@ -33,8 +33,8 @@ const UserManagement = () => {
   const { showSuccess, showError, showInfo } = useToast();
   const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'departments'>('users');
   const [users, setUsers] = useState<User[]>([]);
-  const [roles, setRoles] = useState<Role[]>([...MOCK_ROLES]);
-  const [departments, setDepartments] = useState<Department[]>([...MOCK_DEPARTMENTS]);
+  const [roles] = useState<Role[]>([...MOCK_ROLES]);
+  const [departments] = useState<Department[]>([...MOCK_DEPARTMENTS]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterStatus, setFilterStatus] = useState('');

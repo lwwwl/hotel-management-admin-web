@@ -6,23 +6,9 @@ import {
   Mail, 
   Languages, 
   Shield, 
-  CloudDownload,
-  Eye,
-  EyeOff,
-  Plug,
-  Send,
-  CloudUpload,
-  Download,
-  RotateCcw,
-  Trash2
+  CloudDownload
 } from 'lucide-react';
 
-// Mock数据
-const MOCK_BACKUPS = [
-  { id: 1, filename: 'backup_2024_01_01_auto.sql', date: '2024-01-01 03:00', size: '125MB' },
-  { id: 2, filename: 'backup_2023_12_25_manual.sql', date: '2023-12-25 14:30', size: '118MB' },
-  { id: 3, filename: 'backup_2023_12_18_auto.sql', date: '2023-12-18 03:00', size: '112MB' }
-];
 
 interface Settings {
   general: {
@@ -80,17 +66,9 @@ interface Settings {
   };
 }
 
-interface Backup {
-  id: number;
-  filename: string;
-  date: string;
-  size: string;
-}
 
 const SystemSettings = () => {
   const [activeSection, setActiveSection] = useState<'general' | 'pms' | 'bot' | 'smtp' | 'translation' | 'security' | 'backup'>('general');
-  const [showPmsKey, setShowPmsKey] = useState(false);
-  const [backupHistory, setBackupHistory] = useState<Backup[]>([...MOCK_BACKUPS]);
   
   const [settings, setSettings] = useState<Settings>({
     general: {
@@ -179,19 +157,6 @@ const SystemSettings = () => {
     }));
   };
 
-  // 更新嵌套设置
-  const updateNestedSettings = (section: keyof Settings, subsection: string, key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [subsection]: {
-          ...(prev[section] as any)[subsection],
-          [key]: value
-        }
-      }
-    }));
-  };
 
   return (
     <>
