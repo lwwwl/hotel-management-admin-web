@@ -1,0 +1,904 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Hotel Task Management API",
+    "description": "酒店工单管理系统的API接口文档",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Hotel Task Management Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "开发环境"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Task",
+      "description": "工单管理相关接口"
+    }
+  ],
+  "paths": {
+    "/task/list": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "获取工单列表",
+        "description": "根据条件获取工单列表，支持分页和筛选",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取工单列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTaskList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/detail": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "获取工单详情",
+        "description": "根据工单ID获取工单详细信息",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskDetailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取工单详情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTaskDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/create": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "创建工单",
+        "description": "创建新的工单",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功创建工单",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/update": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "更新工单",
+        "description": "更新工单信息",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功更新工单",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/delete": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "删除工单",
+        "description": "删除指定的工单",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功删除工单",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/claim": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "认领工单",
+        "description": "认领指定的工单",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskClaimRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功认领工单",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/add-executor": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "添加执行人",
+        "description": "为工单添加执行人",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskAddExecutorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功添加执行人",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/transfer-executor": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "转移执行人",
+        "description": "将工单转移给其他执行人",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskTransferExecutorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功转移执行人",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/change-status": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "变更工单状态",
+        "description": "变更工单的执行状态",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskChangeStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功变更工单状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/reminder": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "发送工单催办",
+        "description": "向工单执行人发送催办通知",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskReminderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功发送催办通知",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/total-count": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "获取工单总数",
+        "description": "获取系统中工单的总数量",
+        "requestBody": {
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取工单总数",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseInteger"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/sla": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "获取工单SLA看板数据",
+        "description": "获取工单SLA（服务级别协议）看板相关数据",
+        "requestBody": {
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "成功获取SLA看板数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TaskListRequest": {
+        "type": "object",
+        "required": ["requireTaskColumnList"],
+        "properties": {
+          "requireTaskColumnList": {
+            "type": "array",
+            "description": "需要获取的工单列配置列表",
+            "items": {
+              "$ref": "#/components/schemas/TaskColumnRequest"
+            }
+          },
+          "departmentId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID，用于筛选特定部门的工单"
+          },
+          "priority": {
+            "type": "string",
+            "description": "优先级筛选",
+            "enum": ["low", "medium", "high", "urgent"],
+            "x-enum-varnames": ["低", "中", "高", "紧急"],
+            "x-enum-varnames": ["低", "中", "高", "紧急"]
+          }
+        }
+      },
+      "TaskColumnRequest": {
+        "type": "object",
+        "required": ["taskStatus"],
+        "properties": {
+          "taskStatus": {
+            "type": "string",
+            "description": "工单状态",
+            "enum": ["pending", "in_progress", "review", "completed"],
+            "x-enum-varnames": ["待处理", "进行中", "待确认", "已完成"],
+            "x-enum-varnames": ["待处理", "进行中", "待确认", "已完成"]
+          },
+          "lastTaskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "上一页最后一个工单ID，用于分页"
+          },
+          "lastTaskCreateTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "上一页最后一个工单的创建时间戳，用于分页"
+          }
+        }
+      },
+      "TaskDetailRequest": {
+        "type": "object",
+        "required": ["taskId"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          }
+        }
+      },
+      "TaskCreateRequest": {
+        "type": "object",
+        "required": ["title", "description", "deptId", "priority"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "工单标题"
+          },
+          "description": {
+            "type": "string",
+            "description": "工单描述"
+          },
+          "roomId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "房间ID"
+          },
+          "guestId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "客人ID"
+          },
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID"
+          },
+          "conversationId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "对话ID"
+          },
+          "deadlineTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "截止时间戳"
+          },
+          "priority": {
+            "type": "string",
+            "description": "优先级",
+            "enum": ["low", "medium", "high", "urgent"],
+            "x-enum-varnames": ["低", "中", "高", "紧急"]
+          }
+        }
+      },
+      "TaskUpdateRequest": {
+        "type": "object",
+        "required": ["taskId"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "工单标题"
+          },
+          "description": {
+            "type": "string",
+            "description": "工单描述"
+          },
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID"
+          },
+          "deadlineTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "截止时间戳"
+          },
+          "priority": {
+            "type": "string",
+            "description": "优先级",
+            "enum": ["low", "medium", "high", "urgent"],
+            "x-enum-varnames": ["低", "中", "高", "紧急"]
+          }
+        }
+      },
+      "TaskDeleteRequest": {
+        "type": "object",
+        "required": ["taskId"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          }
+        }
+      },
+      "TaskClaimRequest": {
+        "type": "object",
+        "required": ["taskId"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          }
+        }
+      },
+      "TaskAddExecutorRequest": {
+        "type": "object",
+        "required": ["taskId", "executorUserId"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          },
+          "executorUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "执行人用户ID"
+          }
+        }
+      },
+      "TaskTransferExecutorRequest": {
+        "type": "object",
+        "required": ["taskId", "newExecutorUserId"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          },
+          "newExecutorUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "新的执行人用户ID"
+          }
+        }
+      },
+      "TaskChangeStatusRequest": {
+        "type": "object",
+        "required": ["taskId", "newTaskStatus"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          },
+          "newTaskStatus": {
+            "type": "string",
+            "description": "新的工单状态",
+            "enum": ["pending", "in_progress", "review", "completed"],
+            "x-enum-varnames": ["待处理", "进行中", "待确认", "已完成"]
+          }
+        }
+      },
+      "TaskReminderRequest": {
+        "type": "object",
+        "required": ["taskId"],
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          }
+        }
+      },
+      "TaskListColumnBO": {
+        "type": "object",
+        "properties": {
+          "taskStatus": {
+            "type": "string",
+            "description": "工单状态"
+          },
+          "taskStatusDisplayName": {
+            "type": "string",
+            "description": "工单状态显示名称"
+          },
+          "taskCount": {
+            "type": "integer",
+            "description": "该状态下的工单数量"
+          },
+          "tasks": {
+            "type": "array",
+            "description": "工单列表",
+            "items": {
+              "$ref": "#/components/schemas/TaskListItemBO"
+            }
+          }
+        }
+      },
+      "TaskListItemBO": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "工单标题"
+          },
+          "description": {
+            "type": "string",
+            "description": "工单描述"
+          },
+          "roomId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "房间ID"
+          },
+          "roomName": {
+            "type": "string",
+            "description": "房间名称"
+          },
+          "guestId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "客人ID"
+          },
+          "guestName": {
+            "type": "string",
+            "description": "客人姓名"
+          },
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID"
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称"
+          },
+          "taskStatus": {
+            "type": "string",
+            "description": "工单状态"
+          },
+          "taskStatusDisplayName": {
+            "type": "string",
+            "description": "工单状态显示名称"
+          },
+          "priority": {
+            "type": "string",
+            "description": "优先级"
+          },
+          "priorityDisplayName": {
+            "type": "string",
+            "description": "优先级显示名称"
+          },
+          "createTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "创建时间戳"
+          },
+          "updateTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "更新时间戳"
+          },
+          "deadlineTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "截止时间戳"
+          },
+          "completeTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "完成时间戳"
+          }
+        }
+      },
+      "TaskDetailBO": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "工单ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "工单标题"
+          },
+          "description": {
+            "type": "string",
+            "description": "工单描述"
+          },
+          "roomId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "房间ID"
+          },
+          "roomName": {
+            "type": "string",
+            "description": "房间名称"
+          },
+          "guestId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "客人ID"
+          },
+          "guestName": {
+            "type": "string",
+            "description": "客人姓名"
+          },
+          "deptId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "部门ID"
+          },
+          "deptName": {
+            "type": "string",
+            "description": "部门名称"
+          },
+          "creatorUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "创建人用户ID"
+          },
+          "creatorName": {
+            "type": "string",
+            "description": "创建人姓名"
+          },
+          "executorUserId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "执行人用户ID"
+          },
+          "executorName": {
+            "type": "string",
+            "description": "执行人姓名"
+          },
+          "conversationId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "对话ID"
+          },
+          "conversationName": {
+            "type": "string",
+            "description": "对话名称"
+          },
+          "deadlineTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "截止时间戳"
+          },
+          "completeTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "完成时间戳"
+          },
+          "priority": {
+            "type": "string",
+            "description": "优先级"
+          },
+          "priorityDisplayName": {
+            "type": "string",
+            "description": "优先级显示名称"
+          },
+          "taskStatus": {
+            "type": "string",
+            "description": "工单状态"
+          },
+          "taskStatusDisplayName": {
+            "type": "string",
+            "description": "工单状态显示名称"
+          },
+          "createTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "创建时间戳"
+          },
+          "updateTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "更新时间戳"
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "响应时间戳"
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "状态码"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "description": "响应数据"
+          },
+          "error": {
+            "type": "string",
+            "description": "错误信息"
+          }
+        }
+      },
+      "ApiResponseTaskList": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskListColumnBO"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseTaskDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/TaskDetailBO"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseString": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "string",
+                "description": "操作结果消息"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseInteger": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "integer",
+                "description": "整数数据"
+              }
+            }
+          }
+        ]
+      },
+      "ApiResponseObject": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "description": "对象数据"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
