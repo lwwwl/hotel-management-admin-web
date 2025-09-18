@@ -55,9 +55,14 @@
           "messageIdList": {
             "type": "array",
             "items": { "type": "integer", "format": "int64" }
+          },
+          "language": {
+            "type": "string",
+            "enum": ["zh_CN", "en_US", "ja_JP"],
+            "description": "目标语言代码"
           }
         },
-        "required": ["conversationId", "messageIdList"]
+        "required": ["conversationId", "messageIdList", "language"]
       },
       "MessageTranslate": {
         "type": "object",
