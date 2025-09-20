@@ -1,0 +1,142 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Message Translation API",
+        "version": "1.0.0",
+        "description": "API for translating messages within a conversation."
+    },
+    "paths": {
+        "/translate/get-translate-result": {
+            "post": {
+                "summary": "Get translation results for all messages in a conversation",
+                "operationId": "getTranslateResult",
+                "tags": [
+                    "Translate"
+                ],
+                "requestBody": {
+                    "description": "Conversation ID, messages to be translated, and target language.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetTranslateResultRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TranslateResultInfo"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Error response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "nullable": true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "GetTranslateResultRequest": {
+                "type": "object",
+                "properties": {
+                    "conversationId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of the conversation."
+                    },
+                    "messages": {
+                        "type": "array",
+                        "description": "A list of messages to be translated.",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageContentInfo"
+                        }
+                    },
+                    "language": {
+                        "type": "string",
+                        "description": "The target language for translation.",
+                        "enum": [
+                            "zh_CN",
+                            "en_US",
+                            "ja_JP"
+                        ]
+                    }
+                },
+                "required": [
+                    "conversationId",
+                    "messages",
+                    "language"
+                ]
+            },
+            "MessageContentInfo": {
+                "type": "object",
+                "properties": {
+                    "messageId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of the message."
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The text content of the message."
+                    }
+                }
+            },
+            "TranslateResultInfo": {
+                "type": "object",
+                "properties": {
+                    "messageId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of the message."
+                    },
+                    "result": {
+                        "type": "string",
+                        "description": "The translated content of the message."
+                    }
+                }
+            }
+        }
+    }
+}
