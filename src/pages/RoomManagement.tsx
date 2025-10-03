@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Edit, Trash2, Bed, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Bed, CheckCircle2, XCircle, QrCode, Download, Copy, Trash, FileArchive } from 'lucide-react';
 import { roomApi } from '../api/roomApi';
 import type { HotelRoom } from '../api/types';
 import ConfirmModal from '../components/ConfirmModal';
 import { useToast } from '../components/ToastProvider';
+import { QRCodeCanvas } from 'qrcode.react';
+import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
+import ReactDOM from 'react-dom/client';
 
 interface RoomForm {
   id?: number;
@@ -26,6 +30,12 @@ const RoomManagement = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<HotelRoom | null>(null);
 
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrRoom, setQrRoom] = useState<HotelRoom | null>(null);
+
+  const [selectedRoomIds, setSelectedRoomIds] = useState<number[]>([]);
+  const [exporting, setExporting] = useState(false);
+
   useEffect(() => { loadRooms(); }, []);
 
   const loadRooms = async () => {
@@ -40,6 +50,7 @@ const RoomManagement = () => {
         setError(res.message || '加载失败');
       }
     } catch (e) {
+      console.error('Failed to load rooms:', e);
       setError('加载房间列表失败');
     } finally {
       setLoading(false);
@@ -117,6 +128,105 @@ const RoomManagement = () => {
     }
   };
 
+  const openQrCode = (room: HotelRoom) => {
+    setQrRoom(room);
+    setShowQrModal(true);
+  };
+
+  const downloadQrCode = () => {
+    if (!qrRoom) return;
+    const canvas = document.getElementById('room-qrcode-canvas') as HTMLCanvasElement;
+    if (canvas) {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          saveAs(blob, `${qrRoom.name}.png`);
+        }
+      });
+    }
+  };
+
+  const toggleRoomSelection = (roomId: number) => {
+    setSelectedRoomIds(prev =>
+      prev.includes(roomId) ? prev.filter(id => id !== roomId) : [...prev, roomId]
+    );
+  };
+
+  const selectAllRooms = () => {
+    setSelectedRoomIds(filteredRooms.map(r => r.id));
+  };
+
+  const deselectAllRooms = () => {
+    setSelectedRoomIds([]);
+  };
+
+  const exportQrCodes = async () => {
+    if (selectedRoomIds.length === 0) {
+      showError('没有选择任何房间');
+      return;
+    }
+
+    setExporting(true);
+    const zip = new JSZip();
+    const roomsToExport = rooms.filter(r => selectedRoomIds.includes(r.id));
+
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    document.body.appendChild(tempContainer);
+    const root = ReactDOM.createRoot(tempContainer);
+
+    try {
+      for (const room of roomsToExport) {
+        const qrValue = `https://kefu.5ok.co/guest/?id=${room.id}&name=${room.name}`;
+        const canvasPromise = new Promise<Blob | null>((resolve) => {
+          const Component = () => {
+            const qrRef = (canvas: HTMLCanvasElement | null) => {
+              if (canvas) {
+                // 等待下一个浏览器渲染周期，确保canvas，特别是logo图片，完全渲染后再转换为blob。
+                requestAnimationFrame(() => {
+                  // 添加一个最小化超时，给浏览器一个额外的时刻来渲染图片。
+                  // 这有助于防止竞争条件，确保logo图片包含在blob中。
+                  setTimeout(() => {
+                    canvas.toBlob(resolve);
+                  }, 50);
+                });
+              } else {
+                resolve(null);
+              }
+            };
+            return (
+              <QRCodeCanvas
+                ref={qrRef}
+                value={qrValue}
+                size={256}
+                level="H"
+                imageSettings={{ src: '/logo.png', height: 40, width: 40, excavate: true }}
+              />
+            );
+          };
+          root.render(<Component />);
+        });
+
+        const blob = await canvasPromise;
+        if (blob) {
+          zip.file(`${room.name}.png`, blob);
+        }
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      saveAs(zipBlob, `房间二维码_${new Date().toISOString().slice(0, 10)}.zip`);
+      showSuccess('二维码已开始导出');
+      setSelectedRoomIds([]);
+    } catch (err) {
+      showError('导出失败', (err as Error).message);
+    } finally {
+      setExporting(false);
+      root.unmount();
+      document.body.removeChild(tempContainer);
+    }
+  };
+
+
   return (
     <>
       {error && (
@@ -144,7 +254,7 @@ const RoomManagement = () => {
         />
         <select
           value={activeFilter}
-          onChange={(e) => setActiveFilter(e.target.value as any)}
+          onChange={(e) => setActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
           className="px-3 py-2 border border-gray-300 rounded-lg"
         >
           <option value="all">全部状态</option>
@@ -152,6 +262,38 @@ const RoomManagement = () => {
           <option value="inactive">仅无效</option>
         </select>
         <button onClick={() => { /* 前端过滤，无需请求 */ }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">搜索</button>
+      </div>
+
+      {/* 批量操作 */}
+      <div className="bg-white rounded-lg shadow p-4 mb-4 flex items-center space-x-3">
+        <button
+          onClick={selectAllRooms}
+          className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center"
+        >
+          <Copy size={14} className="mr-2" /> 全选
+        </button>
+        <button
+          onClick={deselectAllRooms}
+          className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center"
+        >
+          <Trash size={14} className="mr-2" /> 取消选择
+        </button>
+        <button
+          onClick={exportQrCodes}
+          disabled={selectedRoomIds.length === 0 || exporting}
+          className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {exporting ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              导出中...
+            </>
+          ) : (
+            <>
+              <FileArchive size={14} className="mr-2" /> 批量导出二维码 ({selectedRoomIds.length})
+            </>
+          )}
+        </button>
       </div>
 
       {/* 列表 */}
@@ -163,34 +305,66 @@ const RoomManagement = () => {
               <p className="mt-2 text-gray-600">加载中...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRooms.map((room) => (
-                <div key={room.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center">
-                      <Bed className="text-blue-600 mr-3" size={20} />
-                      <div>
-                        <h3 className="font-semibold text-gray-800">{room.name}</h3>
-                        <p className="text-sm text-gray-600 flex items-center">
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="text-sm text-gray-600 border-b bg-gray-50">
+                    <th className="px-2 py-3 text-left">
+                      <input
+                        type="checkbox"
+                        checked={selectedRoomIds.length > 0 && selectedRoomIds.length === filteredRooms.length}
+                        onChange={(e) => e.target.checked ? selectAllRooms() : deselectAllRooms()}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </th>
+                    <th className="px-6 py-3 font-medium text-left">房间名称</th>
+                    <th className="px-6 py-3 font-medium text-left">状态</th>
+                    <th className="px-6 py-3 font-medium text-left">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm text-gray-800">
+                  {filteredRooms.map((room) => (
+                    <tr key={room.id} className="border-b border-gray-100 hover:bg-gray-50 align-middle">
+                      <td className="px-2 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedRoomIds.includes(room.id)}
+                          onChange={() => toggleRoomSelection(room.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <Bed className="text-blue-600 mr-4" size={20} />
+                          <p className="font-semibold">{room.name}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`flex items-center text-xs font-medium ${room.active ? 'text-green-600' : 'text-gray-400'}`}>
                           {room.active ? (
-                            <><CheckCircle2 className="text-green-600 mr-1" size={14} /> 有效</>
+                            <><CheckCircle2 className="mr-1.5" size={16} />有效</>
                           ) : (
-                            <><XCircle className="text-gray-400 mr-1" size={14} /> 无效</>
+                            <><XCircle className="mr-1.5" size={16} />无效</>
                           )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-x-2">
-                      <button onClick={() => openEdit(room)} className="p-1 text-green-600 hover:bg-green-50 rounded" title="编辑">
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => confirmDelete(room)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="删除">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-1">
+                          <button onClick={() => openQrCode(room)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-full" title="二维码">
+                            <QrCode size={16} />
+                          </button>
+                          <button onClick={() => openEdit(room)} className="p-2 text-green-600 hover:bg-green-100 rounded-full" title="编辑">
+                            <Edit size={16} />
+                          </button>
+                          <button onClick={() => confirmDelete(room)} className="p-2 text-red-600 hover:bg-red-100 rounded-full" title="删除">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
           {filteredRooms.length === 0 && !loading && (
@@ -204,8 +378,14 @@ const RoomManagement = () => {
 
       {/* 新增/编辑弹窗 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 text-left">
+        <div
+          onClick={() => setShowModal(false)}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 text-left"
+          >
             <h3 className="text-lg font-semibold text-gray-800 mb-4">{editing ? '编辑房间' : '新增房间'}</h3>
             <form onSubmit={(e) => { e.preventDefault(); saveRoom(); }} className="space-y-4">
               <div>
@@ -249,6 +429,51 @@ const RoomManagement = () => {
         type="danger"
         loading={loading}
       />
+
+      {/* 二维码弹窗 */}
+      {showQrModal && qrRoom && (
+        <div
+          onClick={() => { setShowQrModal(false); setQrRoom(null); }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-lg shadow-xl w-full max-w-xs p-6 text-center"
+          >
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">{qrRoom.name}</h3>
+            <div className="mb-4 p-4 border rounded-lg inline-block">
+              <QRCodeCanvas
+                id="room-qrcode-canvas"
+                value={`https://kefu.5ok.co/guest/?id=${qrRoom.id}&name=${qrRoom.name}`}
+                size={200}
+                level="H"
+                imageSettings={{
+                  src: '/logo.png', // 假设public目录下有logo
+                  height: 40,
+                  width: 40,
+                  excavate: true,
+                }}
+              />
+            </div>
+            <p className="text-sm text-gray-500 mb-4">扫描二维码进入客服页面</p>
+            <div className="flex justify-center space-x-3">
+              <button
+                onClick={() => { setShowQrModal(false); setQrRoom(null); }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 w-full"
+              >
+                关闭
+              </button>
+              <button
+                onClick={downloadQrCode}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center w-full"
+              >
+                <Download size={16} className="mr-2" />
+                下载
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

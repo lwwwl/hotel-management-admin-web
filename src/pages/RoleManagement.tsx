@@ -293,62 +293,69 @@ const RoleManagement = () => {
                 <p className="mt-2 text-gray-600">加载中...</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {roles.map((role) => (
-                  <div key={role.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <Shield className="text-blue-600 mr-3" size={24} />
-                        <div>
-                          <h3 className="font-semibold text-gray-800">{role.name}</h3>
-                          <p className="text-sm text-gray-600">{role.description || '暂无描述'}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <button
-                          onClick={() => viewRoleDetail(role)}
-                          disabled={loading}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded disabled:opacity-50"
-                          title="查看详情"
-                        >
-                          <Users size={16} />
-                        </button>
-                        {role.id !== 1 && (
-                          <button
-                            onClick={() => editRole(role)}
-                            disabled={loading}
-                            className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
-                            title="编辑角色"
-                          >
-                            <Edit size={16} />
-                          </button>
-                        )}
-                        {role.id !== 1 && (
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="text-sm text-gray-600 border-b bg-gray-50">
+                      <th className="px-6 py-3 font-medium text-left">角色名称</th>
+                      <th className="px-6 py-3 font-medium text-left">描述</th>
+                      <th className="px-6 py-3 font-medium text-left">创建时间</th>
+                      <th className="px-6 py-3 font-medium text-left">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm text-gray-800">
+                    {roles.map((role) => (
+                      <tr key={role.id} className="border-b border-gray-100 hover:bg-gray-50 align-middle">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <Shield className="text-blue-600 mr-4" size={20} />
+                            <div>
+                              <p className="font-semibold">{role.name}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">
+                          {role.description || '暂无描述'}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                          {new Date(role.createTime).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-1">
                             <button
-                                onClick={() => openDeleteConfirm(role)}
-                                disabled={loading}
-                                className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
-                                title="删除角色"
+                              onClick={() => viewRoleDetail(role)}
+                              disabled={loading}
+                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-full disabled:opacity-50"
+                              title="查看详情"
                             >
-                              <Trash2 size={16} />
+                              <Users size={16} />
                             </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        <Users className="inline mr-1" size={14} />
-                        {role.userCount} 名用户
-                      </span>
-                      <button
-                        onClick={() => viewRoleDetail(role)}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        查看详情 →
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                            {role.id !== 1 && (
+                              <>
+                                <button
+                                  onClick={() => editRole(role)}
+                                  disabled={loading}
+                                  className="p-2 text-green-600 hover:bg-green-100 rounded-full disabled:opacity-50"
+                                  title="编辑角色"
+                                >
+                                  <Edit size={16} />
+                                </button>
+                                <button
+                                  onClick={() => openDeleteConfirm(role)}
+                                  disabled={loading}
+                                  className="p-2 text-red-600 hover:bg-red-100 rounded-full disabled:opacity-50"
+                                  title="删除角色"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
             {roles.length === 0 && !loading && (

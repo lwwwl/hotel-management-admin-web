@@ -457,45 +457,58 @@ const DeptManagement = () => {
             </button>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {selectedDept.memberList.map((member) => {
-                const isLeader = member.userId === selectedDept.leaderId; // 判断是否为部门领导
-                
-                return (
-                  <div key={member.userId} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-gray-600 font-medium">{member.name.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <div className="flex items-center">
-                            <p className="font-medium text-gray-800">{member.name}</p>
+            {selectedDept.memberList.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="text-sm text-gray-600 border-b bg-gray-50">
+                      <th className="px-6 py-3 font-medium text-left">用户信息</th>
+                      <th className="px-6 py-3 font-medium text-left">角色</th>
+                      <th className="px-6 py-3 font-medium text-left">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm text-gray-800">
+                    {selectedDept.memberList.map((member) => {
+                      const isLeader = member.userId === selectedDept.leaderId;
+                      return (
+                        <tr key={member.userId} className="border-b border-gray-100 hover:bg-gray-50 align-middle">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <span className="text-gray-600 font-medium">{member.name.charAt(0)}</span>
+                              </div>
+                              <div>
+                                <p className="font-semibold">{member.name}</p>
+                                <p className="text-gray-500 text-xs">{member.username}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
                             {isLeader && (
-                              <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-medium">
                                 负责人
                               </span>
                             )}
-                          </div>
-                          <p className="text-sm text-gray-500">{member.username}</p>
-                        </div>
-                      </div>
-                      {!isLeader && (
-                        <button
-                          onClick={() => removeMember(member)}
-                          disabled={loading}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
-                          title="移除成员"
-                        >
-                          <UserMinus size={16} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {selectedDept.memberList.length === 0 && (
+                          </td>
+                          <td className="px-6 py-4">
+                            {!isLeader && (
+                              <button
+                                onClick={() => removeMember(member)}
+                                disabled={loading}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-full disabled:opacity-50"
+                                title="移除成员"
+                              >
+                                <UserMinus size={16} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
               <div className="text-center py-8 text-gray-500">
                 <Users className="mx-auto mb-2" size={48} />
                 <p>暂无成员</p>
@@ -599,12 +612,8 @@ const DeptManagement = () => {
         isOpen={showConfirmModal}
         title="确认删除"
         message={`确定要删除部门 "${deptToDelete?.name}" 吗？此操作将同时删除该部门的所有成员关联，且不可撤销。`}
-        confirmText="删除"
-        cancelText="取消"
         onConfirm={confirmDeleteDept}
         onCancel={cancelDelete}
-        type="danger"
-        loading={loading}
       />
     </>
   );
