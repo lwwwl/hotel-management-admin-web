@@ -257,17 +257,15 @@ const MenuConfig = () => {
   };
 
   return (
-    <>
-      {/* 顶部标题 */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-800">菜单配置</h2>
-          <p className="text-gray-600 mt-2">配置客人聊天界面的快捷菜单</p>
-        </div>
-        <div />
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="flex-shrink-0 text-left mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">菜单配置</h1>
+        <p className="mt-2 text-gray-600">管理系统的导航菜单、权限和可见性。</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      {/* Main Grid */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 overflow-y-auto text-left items-start">
         {/* 菜单树结构 */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow">
@@ -374,7 +372,7 @@ const MenuConfig = () => {
 
         {/* 右侧详情（常驻） */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow sticky top-24">
+          <div className="bg-white rounded-lg shadow sticky top-0">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800">菜单详情</h3>
             </div>
@@ -429,13 +427,9 @@ const MenuConfig = () => {
 
       {/* 编辑弹窗 */}
       {isEditModalOpen && editingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black bg-opacity-30" onClick={cancelEdit} />
-          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-800">编辑菜单项</h3>
-              <button onClick={cancelEdit} className="text-gray-500 hover:text-gray-700">×</button>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 text-left">
+            <h2 className="text-2xl font-bold mb-6">编辑菜单</h2>
             <div className="p-6 space-y-5">
               {/* 图标选择 */}
               <div>
@@ -532,7 +526,7 @@ const MenuConfig = () => {
         onCancel={cancelDeleteItem}
         type="danger"
       />
-    </>
+    </div>
   );
 };
 

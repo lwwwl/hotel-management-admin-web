@@ -1,6 +1,9 @@
-export { userApi } from './userApi';
-export { deptApi } from './deptApi';
-export { roleApi } from './roleApi';
-export { menuApi } from './menuApi';
-export { quickMenuApi } from './quickMenuApi';
+export * from './axiosConfig';
+export * from './webApi';
+export * from './userApi';
+export * from './deptApi';
+export * from './menuApi';
+export * from './quickMenuApi';
+export * from './roleApi';
+export * from './roomApi';
 export * from './types';

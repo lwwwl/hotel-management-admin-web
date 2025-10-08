@@ -304,27 +304,16 @@ const DeptManagement = () => {
   };
 
   return (
-    <>
-      {/* 顶部标题 */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-800">部门管理</h2>
-          <p className="text-gray-600 mt-2">管理酒店部门结构和成员分配</p>
-        </div>
-        <button
-          onClick={openAddDeptModal}
-          data-testid="add-dept-button"
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="mr-2" size={16} />
-          {loading ? '加载中...' : '添加部门'}
-        </button>
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="flex-shrink-0 text-left mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">部门管理</h1>
+        <p className="mt-2 text-gray-600">管理公司的组织架构和部门信息。</p>
       </div>
 
       {/* 错误提示 */}
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="flex-shrink-0 mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}
           <button 
             onClick={() => setError(null)}
@@ -336,7 +325,7 @@ const DeptManagement = () => {
       )}
 
       {/* 标签页 */}
-      <div className="bg-white rounded-lg shadow mb-6">
+      <div className="flex-shrink-0 bg-white rounded-lg shadow mb-6">
         <div className="border-b border-gray-200">
           <nav className="flex">
             <button
@@ -366,9 +355,10 @@ const DeptManagement = () => {
         </div>
       </div>
 
-      {/* 部门列表 */}
-      {activeTab === 'list' && (
-        <div className="bg-white rounded-lg shadow">
+      {/* Main Content */}
+      <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden text-left">
+        {/* 部门列表 */}
+        {activeTab === 'list' && (
           <div className="p-6">
             {loading && departments.length === 0 ? (
               <div className="text-center py-8">
@@ -431,84 +421,86 @@ const DeptManagement = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 部门详情 */}
-      {activeTab === 'detail' && selectedDept && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-gray-800 flex items-center">
-                <Building className="mr-2 text-blue-600" size={20} />
-                {selectedDept.deptName}
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">
-                负责人: {selectedDept.leaderName} · {selectedDept.memberList.length} 名成员
-              </p>
-            </div>
-            <button
-              onClick={openAddMemberModal}
-              disabled={loading}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center disabled:opacity-50"
-            >
-              <UserPlus className="mr-2" size={16} />
-              添加成员
-            </button>
-          </div>
+        {/* 部门详情 */}
+        {activeTab === 'detail' && selectedDept && (
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {selectedDept.memberList.map((member) => {
-                const isLeader = member.userId === selectedDept.leaderId; // 判断是否为部门领导
-                
-                return (
-                  <div key={member.userId} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-gray-600 font-medium">{member.name.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <div className="flex items-center">
-                            <p className="font-medium text-gray-800">{member.name}</p>
-                            {isLeader && (
-                              <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-                                负责人
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500">{member.username}</p>
-                        </div>
-                      </div>
-                      {!isLeader && (
-                        <button
-                          onClick={() => removeMember(member)}
-                          disabled={loading}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
-                          title="移除成员"
-                        >
-                          <UserMinus size={16} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {selectedDept.memberList.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Users className="mx-auto mb-2" size={48} />
-                <p>暂无成员</p>
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-800 flex items-center">
+                  <Building className="mr-2 text-blue-600" size={20} />
+                  {selectedDept.deptName}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  负责人: {selectedDept.leaderName} · {selectedDept.memberList.length} 名成员
+                </p>
               </div>
-            )}
+              <button
+                onClick={openAddMemberModal}
+                disabled={loading}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center disabled:opacity-50"
+              >
+                <UserPlus className="mr-2" size={16} />
+                添加成员
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {selectedDept.memberList.map((member) => {
+                  const isLeader = member.userId === selectedDept.leaderId; // 判断是否为部门领导
+                  
+                  return (
+                    <div key={member.userId} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-gray-600 font-medium">{member.name.charAt(0)}</span>
+                          </div>
+                          <div>
+                            <div className="flex items-center">
+                              <p className="font-medium text-gray-800">{member.name}</p>
+                              {isLeader && (
+                                <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                                  负责人
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-500">{member.username}</p>
+                          </div>
+                        </div>
+                        {!isLeader && (
+                          <button
+                            onClick={() => removeMember(member)}
+                            disabled={loading}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                            title="移除成员"
+                          >
+                            <UserMinus size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {selectedDept.memberList.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="mx-auto mb-2" size={48} />
+                  <p>暂无成员</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
+
+      {/* Modals */}
       {/* 添加/编辑部门模态框 */}
       {showDeptModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 text-left">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               {editingDept ? '编辑部门' : '添加部门'}
             </h3>
@@ -606,7 +598,7 @@ const DeptManagement = () => {
         type="danger"
         loading={loading}
       />
-    </>
+    </div>
   );
 };
 

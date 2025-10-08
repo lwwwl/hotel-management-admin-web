@@ -62,15 +62,15 @@ const Dashboard = () => {
   };
 
   return (
-    <>
-      {/* 顶部标题 */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800">运营仪表板</h2>
-        <p className="text-gray-600 mt-2">实时监控酒店客服系统运营状态</p>
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="flex-shrink-0 text-left mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">数据看板</h1>
+        <p className="mt-2 text-gray-600">实时概览酒店的核心运营指标。</p>
       </div>
 
-      {/* KPI 卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* KPI Cards */}
+      <div className="flex-shrink-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* 今日会话 */}
         <div 
           className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" 
@@ -144,8 +144,8 @@ const Dashboard = () => {
       </div>
 
       {/* 最近告警 */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="flex-1 bg-white rounded-lg shadow flex flex-col overflow-hidden">
+        <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-800">最近告警</h3>
           <button
             onClick={refreshAlerts}
@@ -156,7 +156,7 @@ const Dashboard = () => {
             刷新
           </button>
         </div>
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -206,7 +206,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

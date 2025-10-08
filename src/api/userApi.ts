@@ -95,6 +95,13 @@ interface UserItem {
   userRoles?: UserRoleInfo[];
 }
 
+interface UserUpdateBasicRequest {
+  displayName?: string;
+  phone?: string;
+  email?: string;
+  password?: string;
+}
+
 export const userApi = {
   /**
    * 获取用户详情
@@ -147,6 +154,15 @@ export const userApi = {
    */
   searchUsers: async (request: UserSearchRequest) => {
     const response = await api.post<ApiResponse<UserListResponse>>('/user/search', request);
+    return response.data;
+  },
+
+  /**
+   * 更新当前用户的基本信息
+   * @param request 包含要更新字段的请求
+   */
+  updateUserBasic: async (request: UserUpdateBasicRequest) => {
+    const response = await api.post<ApiResponse<boolean>>('/user/update-basic', request);
     return response.data;
   }
 };

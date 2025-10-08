@@ -285,15 +285,15 @@ export interface DeptForm {
 // 前端组件使用的用户类型（兼容现有代码）
 export interface User {
   id: number;
-  name: string;
   username: string;
+  name: string;
   employeeId: string;
-  role: string;
   department: string;
+  departmentId: number | null; // Add departmentId
+  userRoles: UserRoleInfo[] | null; // Replaces 'roles: string'
+  role: string; // Keep for form compatibility
   status: 'active' | 'inactive';
-  lastLogin: string;
-  createTime: string; // 添加创建时间字段
-  userRoles?: UserRoleInfo[]; // 添加用户角色信息列表
+  createTime: string;
 }
 
 export interface UserForm {

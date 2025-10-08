@@ -159,18 +159,18 @@ const SystemSettings = () => {
 
 
   return (
-    <>
-      {/* 顶部标题 */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800">系统设置</h2>
-        <p className="text-gray-600 mt-2">配置系统集成和基础设置</p>
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="flex-shrink-0 text-left mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">系统设置</h1>
+        <p className="mt-2 text-gray-600">管理系统的各项配置参数。</p>
       </div>
 
-      {/* 设置分类 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Content */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-8 overflow-y-auto text-left">
         {/* 左侧菜单 */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-lg shadow sticky top-0">
             <nav className="p-4">
               <button
                 onClick={() => setActiveSection('general')}
@@ -300,7 +300,7 @@ const SystemSettings = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -118,24 +118,20 @@ const RoomManagement = () => {
   };
 
   return (
-    <>
+    <div className="h-full flex flex-col bg-gray-50">
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+        <div className="flex-shrink-0 mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
           {error}
         </div>
       )}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-800">房间管理</h2>
-          <p className="text-gray-600 mt-2">管理酒店房间的基础信息</p>
-        </div>
-        <button onClick={openAdd} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-          <Plus className="mr-2" size={16} /> 新增房间
-        </button>
+      {/* Header */}
+      <div className="flex-shrink-0 text-left mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">房型管理</h1>
+        <p className="mt-2 text-gray-600">管理酒店的所有房型信息、价格和可用状态。</p>
       </div>
 
       {/* 筛选栏 */}
-      <div className="bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-3 md:space-y-0">
+      <div className="flex-shrink-0 bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-3 md:space-y-0">
         <input
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
@@ -151,21 +147,28 @@ const RoomManagement = () => {
           <option value="active">仅有效</option>
           <option value="inactive">仅无效</option>
         </select>
-        <button onClick={() => { /* 前端过滤，无需请求 */ }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">搜索</button>
+        <button onClick={openAdd} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center">
+          <Plus className="mr-2" size={16} /> 新增房型
+        </button>
       </div>
 
-      {/* 列表 */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6">
+      {/* Room List */}
+      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden">
+        <div className="h-full overflow-y-auto p-6">
           {loading && rooms.length === 0 ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="mt-2 text-gray-600">加载中...</p>
             </div>
+          ) : filteredRooms.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Bed className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-4">没有找到匹配的房型。</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredRooms.map((room) => (
-                <div key={room.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div key={room.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow text-left">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center">
                       <Bed className="text-blue-600 mr-3" size={20} />
@@ -193,16 +196,10 @@ const RoomManagement = () => {
               ))}
             </div>
           )}
-          {filteredRooms.length === 0 && !loading && (
-            <div className="text-center py-8 text-gray-500">
-              <Bed className="mx-auto mb-2" size={48} />
-              <p>暂无房间</p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* 新增/编辑弹窗 */}
+      {/* Add/Edit Room Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 text-left">
@@ -249,7 +246,7 @@ const RoomManagement = () => {
         type="danger"
         loading={loading}
       />
-    </>
+    </div>
   );
 };
 

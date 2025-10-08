@@ -220,27 +220,16 @@ const RoleManagement = () => {
   };
 
   return (
-    <>
-      {/* 顶部标题 */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-800">角色管理</h2>
-          <p className="text-gray-600 mt-2">管理酒店角色权限和用户分配</p>
-        </div>
-        <button
-          onClick={openAddRoleModal}
-          data-testid="add-role-button"
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="mr-2" size={16} />
-          {loading ? '加载中...' : '添加角色'}
-        </button>
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="flex-shrink-0 text-left mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">角色管理</h1>
+        <p className="mt-2 text-gray-600">定义用户角色并分配相应的系统权限。</p>
       </div>
 
       {/* 错误提示 */}
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="flex-shrink-0 mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}
           <button 
             onClick={() => setError(null)}
@@ -253,7 +242,7 @@ const RoleManagement = () => {
 
 
       {/* 标签页 */}
-      <div className="bg-white rounded-lg shadow mb-6">
+      <div className="flex-shrink-0 bg-white rounded-lg shadow mb-6">
         <div className="border-b border-gray-200">
           <nav className="flex">
             <button
@@ -283,9 +272,10 @@ const RoleManagement = () => {
         </div>
       </div>
 
-      {/* 角色列表 */}
-      {activeTab === 'list' && (
-        <div className="bg-white rounded-lg shadow">
+      {/* Main Content Area */}
+      <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden text-left">
+        {/* 角色列表 */}
+        {activeTab === 'list' && (
           <div className="p-6">
             {loading && roles.length === 0 ? (
               <div className="text-center py-8">
@@ -358,17 +348,18 @@ const RoleManagement = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 角色详情 */}
-      {activeTab === 'detail' && selectedRole && (
-        <RoleDetail 
-          roleId={selectedRole.roleId} 
-          onBack={() => setActiveTab('list')} 
-        />
-      )}
+        {/* 角色详情 */}
+        {activeTab === 'detail' && selectedRole && (
+          <RoleDetail 
+            roleId={selectedRole.roleId} 
+            onBack={() => setActiveTab('list')} 
+          />
+        )}
+      </div>
 
+      {/* Modals */}
       {/* 添加/编辑角色模态框 */}
       {showRoleModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -434,7 +425,7 @@ const RoleManagement = () => {
         type="danger"
         loading={loading}
       />
-    </>
+    </div>
   );
 };
 

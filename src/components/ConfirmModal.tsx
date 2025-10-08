@@ -71,7 +71,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </div>
 
         {/* 弹窗内容 */}
-        <div className="p-6">
+        <div className="p-6 text-left">
           <p className="text-gray-600 leading-relaxed">{message}</p>
         </div>
 
