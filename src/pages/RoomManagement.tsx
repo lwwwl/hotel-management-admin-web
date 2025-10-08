@@ -182,10 +182,7 @@ const RoomManagement = () => {
           const Component = () => {
             const qrRef = (canvas: HTMLCanvasElement | null) => {
               if (canvas) {
-                // 等待下一个浏览器渲染周期，确保canvas，特别是logo图片，完全渲染后再转换为blob。
                 requestAnimationFrame(() => {
-                  // 添加一个最小化超时，给浏览器一个额外的时刻来渲染图片。
-                  // 这有助于防止竞争条件，确保logo图片包含在blob中。
                   setTimeout(() => {
                     canvas.toBlob(resolve);
                   }, 50);
@@ -228,24 +225,20 @@ const RoomManagement = () => {
 
 
   return (
-    <>
+    <div className="h-full flex flex-col">
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+        <div className="flex-shrink-0 mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
           {error}
         </div>
       )}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-800">房间管理</h2>
-          <p className="text-gray-600 mt-2">管理酒店房间的基础信息</p>
-        </div>
-        <button onClick={openAdd} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-          <Plus className="mr-2" size={16} /> 新增房间
-        </button>
+      {/* Header */}
+      <div className="flex-shrink-0 text-left mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">房型管理</h1>
+        <p className="mt-2 text-gray-600">管理酒店的所有房型信息、价格和可用状态。</p>
       </div>
 
       {/* 筛选栏 */}
-      <div className="bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-3 md:space-y-0">
+      <div className="flex-shrink-0 bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-3 md:space-y-0">
         <input
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
@@ -254,128 +247,125 @@ const RoomManagement = () => {
         />
         <select
           value={activeFilter}
-          onChange={(e) => setActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
+          onChange={(e) => setActiveFilter(e.target.value as any)}
           className="px-3 py-2 border border-gray-300 rounded-lg"
         >
           <option value="all">全部状态</option>
           <option value="active">仅有效</option>
           <option value="inactive">仅无效</option>
         </select>
-        <button onClick={() => { /* 前端过滤，无需请求 */ }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">搜索</button>
+        <button onClick={openAdd} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center">
+          <Plus className="mr-2" size={16} /> 新增房间
+        </button>
       </div>
-
+      
       {/* 批量操作 */}
-      <div className="bg-white rounded-lg shadow p-4 mb-4 flex items-center space-x-3">
-        <button
-          onClick={selectAllRooms}
-          className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center"
-        >
-          <Copy size={14} className="mr-2" /> 全选
-        </button>
-        <button
-          onClick={deselectAllRooms}
-          className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center"
-        >
-          <Trash size={14} className="mr-2" /> 取消选择
-        </button>
-        <button
-          onClick={exportQrCodes}
-          disabled={selectedRoomIds.length === 0 || exporting}
-          className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {exporting ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              导出中...
-            </>
-          ) : (
-            <>
-              <FileArchive size={14} className="mr-2" /> 批量导出二维码 ({selectedRoomIds.length})
-            </>
-          )}
-        </button>
-      </div>
+      <div className="flex-shrink-0 bg-white rounded-lg shadow p-4 mb-4 flex items-center space-x-3">
+         <button
+           onClick={selectAllRooms}
+           className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center"
+         >
+           <Copy size={14} className="mr-2" /> 全选
+         </button>
+         <button
+           onClick={deselectAllRooms}
+           className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center"
+         >
+           <Trash size={14} className="mr-2" /> 取消选择
+         </button>
+         <button
+           onClick={exportQrCodes}
+           disabled={selectedRoomIds.length === 0 || exporting}
+           className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+         >
+           {exporting ? (
+             <>
+               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+               导出中...
+             </>
+           ) : (
+             <>
+               <FileArchive size={14} className="mr-2" /> 批量导出二维码 ({selectedRoomIds.length})
+             </>
+           )}
+         </button>
+       </div>
 
-      {/* 列表 */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6">
+      {/* Room List */}
+      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden">
+        <div className="h-full overflow-y-auto p-6">
           {loading && rooms.length === 0 ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="mt-2 text-gray-600">加载中...</p>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="text-sm text-gray-600 border-b bg-gray-50">
-                    <th className="px-2 py-3 text-left">
-                      <input
-                        type="checkbox"
-                        checked={selectedRoomIds.length > 0 && selectedRoomIds.length === filteredRooms.length}
-                        onChange={(e) => e.target.checked ? selectAllRooms() : deselectAllRooms()}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </th>
-                    <th className="px-6 py-3 font-medium text-left">房间名称</th>
-                    <th className="px-6 py-3 font-medium text-left">状态</th>
-                    <th className="px-6 py-3 font-medium text-left">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm text-gray-800">
-                  {filteredRooms.map((room) => (
-                    <tr key={room.id} className="border-b border-gray-100 hover:bg-gray-50 align-middle">
-                      <td className="px-2 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedRoomIds.includes(room.id)}
-                          onChange={() => toggleRoomSelection(room.id)}
-                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <Bed className="text-blue-600 mr-4" size={20} />
-                          <p className="font-semibold">{room.name}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`flex items-center text-xs font-medium ${room.active ? 'text-green-600' : 'text-gray-400'}`}>
-                          {room.active ? (
-                            <><CheckCircle2 className="mr-1.5" size={16} />有效</>
-                          ) : (
-                            <><XCircle className="mr-1.5" size={16} />无效</>
-                          )}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-1">
-                          <button onClick={() => openQrCode(room)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-full" title="二维码">
-                            <QrCode size={16} />
-                          </button>
-                          <button onClick={() => openEdit(room)} className="p-2 text-green-600 hover:bg-green-100 rounded-full" title="编辑">
-                            <Edit size={16} />
-                          </button>
-                          <button onClick={() => confirmDelete(room)} className="p-2 text-red-600 hover:bg-red-100 rounded-full" title="删除">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          ) : filteredRooms.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Bed className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-4">没有找到匹配的房型。</p>
             </div>
-          )}
-          {filteredRooms.length === 0 && !loading && (
-            <div className="text-center py-8 text-gray-500">
-              <Bed className="mx-auto mb-2" size={48} />
-              <p>暂无房间</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredRooms.map((room) => (
+                <div key={room.id} className={`relative border rounded-lg hover:shadow-md transition-shadow text-left ${selectedRoomIds.includes(room.id) ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}`}>
+                  {/* Clickable Area for Selection */}
+                  <div 
+                    className="p-4 cursor-pointer"
+                    onClick={() => toggleRoomSelection(room.id)}
+                  >
+                    {/* Custom Checkbox */}
+                    <label htmlFor={`room-checkbox-${room.id}`} className="absolute top-2 right-2 p-2 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        id={`room-checkbox-${room.id}`}
+                        type="checkbox"
+                        checked={selectedRoomIds.includes(room.id)}
+                        onChange={() => toggleRoomSelection(room.id)}
+                        className="sr-only" // Visually hide the native checkbox
+                      />
+                      <span className={`h-6 w-6 flex items-center justify-center rounded-md border-2 transition-colors ${
+                        selectedRoomIds.includes(room.id)
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'bg-white border-gray-300 group-hover:border-blue-400'
+                      }`}>
+                        {selectedRoomIds.includes(room.id) && <CheckCircle2 className="h-4 w-4 text-white" />}
+                      </span>
+                    </label>
+
+                    <div className="flex items-center justify-between mb-3 pr-8"> {/* Add padding to prevent overlap with checkbox */}
+                      <div className="flex items-center">
+                        <Bed className="text-blue-600 mr-3" size={20} />
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{room.name}</h3>
+                          <p className="text-sm text-gray-600 flex items-center">
+                            {room.active ? (
+                              <><CheckCircle2 className="text-green-600 mr-1" size={14} /> 有效</>
+                            ) : (
+                              <><XCircle className="text-gray-400 mr-1" size={14} /> 无效</>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Action buttons at the bottom of the card */}
+                  <div className="flex items-center justify-end space-x-1 px-4 py-2 border-t border-gray-100">
+                      <button onClick={(e) => { e.stopPropagation(); openQrCode(room); }} className="p-1 text-blue-600 hover:bg-blue-100 rounded" title="二维码">
+                          <QrCode size={16} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); openEdit(room); }} className="p-1 text-green-600 hover:bg-green-50 rounded" title="编辑">
+                          <Edit size={16} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); confirmDelete(room); }} className="p-1 text-red-600 hover:bg-red-50 rounded" title="删除">
+                          <Trash2 size={16} />
+                      </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
       </div>
-
+      
       {/* 新增/编辑弹窗 */}
       {showModal && (
         <div
@@ -474,7 +464,7 @@ const RoomManagement = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

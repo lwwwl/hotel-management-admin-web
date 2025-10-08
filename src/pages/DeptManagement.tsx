@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { 
-  Plus, 
   Edit, 
   Trash2, 
   Users, 
@@ -105,17 +104,6 @@ const DeptManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // 打开添加部门模态框
-  const openAddDeptModal = () => {
-    setEditingDept(null);
-    setSelectedLeader(null);
-    setDeptForm({
-      deptName: '',
-      leaderId: 0
-    });
-    setShowDeptModal(true);
   };
 
   // 编辑部门

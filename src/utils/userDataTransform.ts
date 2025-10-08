@@ -27,7 +27,6 @@ export const transformUserItemToUser = (userItem: UserItem): User => {
     role: primaryRole, // 使用第一个角色作为主要角色
     department: userItem.department?.deptName || '',
     status: userItem.active === 1 ? 'active' : 'inactive',
-    lastLogin: new Date().toLocaleString('zh-CN'), // 模拟最后登录时间
     createTime: new Date(userItem.createTime).toLocaleString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
@@ -36,7 +35,8 @@ export const transformUserItemToUser = (userItem: UserItem): User => {
       minute: '2-digit',
       second: '2-digit'
     }),
-    userRoles: userItem.userRoles // 添加userRoles字段列表
+    userRoles: userItem.userRoles || null, // 添加userRoles字段列表
+    departmentId: userItem.department ? userItem.department.deptId : null
   };
 };
 
@@ -52,7 +52,6 @@ export const transformUserDetailToUser = (userDetail: UserDetailResponse) => {
     role: userDetail.roles && userDetail.roles.length > 0 ? userDetail.roles[0].roleName : 'staff',
     department: userDetail.department?.deptName || '',
     status: userDetail.active === 1 ? 'active' : 'inactive',
-    lastLogin: new Date().toLocaleString('zh-CN') // 模拟最后登录时间
   };
 };
 

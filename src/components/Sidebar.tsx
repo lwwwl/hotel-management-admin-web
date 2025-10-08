@@ -129,7 +129,7 @@ const Sidebar = () => {
                   查看详情
                 </button>
                 <button 
-                  onClick={() => { /* Handle logout */ }}
+                  onClick={() => { window.location.href = 'https://kefu.5ok.co/logout?rd=https://kefu.5ok.co/admin/'; }}
                   className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                 >
                   <LogOut size={16} className="mr-2" />

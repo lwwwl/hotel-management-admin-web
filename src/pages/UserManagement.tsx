@@ -15,37 +15,7 @@ import { transformUserFormToCreateRequest, transformUserFormToUpdateRequest } fr
 import { useToast } from '../components/ToastProvider';
 import ConfirmModal from '../components/ConfirmModal';
 import type { User, UserForm, DeptInfo, UserRoleInfo } from '../api/types';
-
-// 根据提供的JSON定义API响应类型，以确保清晰和安全
-type UserItem = {
-  userId: number;
-  username: string;
-  displayName: string;
-  employeeNumber: string | null;
-  active: number;
-  createTime: number;
-  updateTime: number;
-  department: {
-    deptId: number;
-    deptName: string;
-  } | null;
-  userRoles: UserRoleInfo[] | null;
-};
-
-// 在本地定义转换函数，以确保它与确切的API结构匹配
-const transformUserItemToUser = (userItem: UserItem): User => ({
-  id: userItem.userId,
-  username: userItem.username,
-  name: userItem.displayName,
-  employeeId: userItem.employeeNumber || 'N/A',
-  department: userItem.department ? userItem.department.deptName : '未分配',
-  departmentId: userItem.department ? userItem.department.deptId : null,
-  userRoles: userItem.userRoles, // 直接传递数组
-  // 假设第一个角色是用于编辑的主要角色
-  role: userItem.userRoles && userItem.userRoles.length > 0 ? String(userItem.userRoles[0].roleId) : '',
-  status: userItem.active === 1 ? 'active' : 'inactive',
-  createTime: new Date(userItem.createTime).toLocaleString(),
-});
+import { transformUserItemToUser } from "../utils/userDataTransform";
 
 // 用于将角色显示为带工具提示的彩色徽章的组件
 const RoleBadges = ({ roles }: { roles: UserRoleInfo[] | null }) => {
@@ -190,16 +160,6 @@ const UserManagement = () => {
       showError('刷新用户列表时发生错误', e instanceof Error ? e.message : String(e));
     }
   }
-
-  // 获取角色名称
-  const getRoleName = (roleId: string) => {
-    const roleNames: Record<string, string> = {
-      'admin': '超级管理员',
-      'agent': '前台客服',
-      'staff': '部门员工'
-    };
-    return roleNames[roleId] || roleId;
-  };
 
   // 打开添加用户模态框
   const openAddUserModal = () => {
