@@ -137,7 +137,30 @@ const RoomManagement = () => {
     if (!qrRoom) return;
     const canvas = document.getElementById('room-qrcode-canvas') as HTMLCanvasElement;
     if (canvas) {
-      canvas.toBlob((blob) => {
+      // 创建一个新的、更大的canvas来容纳二维码和文字
+      const newCanvas = document.createElement('canvas');
+      const ctx = newCanvas.getContext('2d');
+      if (!ctx) return;
+      
+      const padding = 10;
+      const fontSize = 16;
+      newCanvas.width = canvas.width + 2 * padding;
+      newCanvas.height = canvas.height + 2 * padding + fontSize + 5; // 5 for spacing
+      
+      // 填充白色背景
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+      
+      // 绘制二维码
+      ctx.drawImage(canvas, padding, padding);
+      
+      // 绘制文字
+      ctx.fillStyle = '#000';
+      ctx.font = `${fontSize}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText(qrRoom.name, newCanvas.width / 2, canvas.height + padding + fontSize);
+      
+      newCanvas.toBlob((blob) => {
         if (blob) {
           saveAs(blob, `${qrRoom.name}.png`);
         }
@@ -184,7 +207,33 @@ const RoomManagement = () => {
               if (canvas) {
                 requestAnimationFrame(() => {
                   setTimeout(() => {
-                    canvas.toBlob(resolve);
+                     // 创建一个新的、更大的canvas来容纳二维码和文字
+                    const newCanvas = document.createElement('canvas');
+                    const ctx = newCanvas.getContext('2d');
+                    if (!ctx) {
+                      resolve(null);
+                      return;
+                    }
+                    
+                    const padding = 10;
+                    const fontSize = 16;
+                    newCanvas.width = canvas.width + 2 * padding;
+                    newCanvas.height = canvas.height + 2 * padding + fontSize + 5; // 5 for spacing
+                    
+                    // 填充白色背景
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+                    
+                    // 绘制二维码
+                    ctx.drawImage(canvas, padding, padding);
+                    
+                    // 绘制文字
+                    ctx.fillStyle = '#000';
+                    ctx.font = `${fontSize}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(room.name, newCanvas.width / 2, canvas.height + padding + fontSize);
+
+                    newCanvas.toBlob(resolve);
                   }, 50);
                 });
               } else {
@@ -444,6 +493,7 @@ const RoomManagement = () => {
                   excavate: true,
                 }}
               />
+              <p className="mt-2 text-center font-semibold">{qrRoom.name}</p>
             </div>
             <p className="text-sm text-gray-500 mb-4">扫描二维码进入客服页面</p>
             <div className="flex justify-center space-x-3">

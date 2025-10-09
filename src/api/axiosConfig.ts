@@ -14,8 +14,9 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // 为所有请求添加X-User-Id头
     config.headers = config.headers || {};
+    // 直连IP的请求时，会用上写死的userId
+    // 当请求域名的url，走nginx会通过authelia_session解析出用户对应的userId并覆写这个X-User-Id请求头
     config.headers['X-User-Id'] = '1';
     
     // You can add auth token here if needed
