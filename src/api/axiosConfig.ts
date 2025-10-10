@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type { AxiosResponse, AxiosError } from 'axios';
 
-const API_BASE_URL = 'https://kefu.5ok.co/api/v1';
-// const API_BASE_URL = 'http://111.223.37.162:7788';
+// const API_BASE_URL = 'https://kefu.5ok.co/api/v1';
+const API_BASE_URL = 'http://111.223.37.162:7788';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

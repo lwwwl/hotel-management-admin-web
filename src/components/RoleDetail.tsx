@@ -9,9 +9,10 @@ import type { RoleDetailResponse } from '../api/types';
 interface RoleDetailProps {
   roleId: number;
   onBack: () => void;
+  onUpdate?: () => void;
 }
 
-const RoleDetail: React.FC<RoleDetailProps> = ({ roleId, onBack }) => {
+const RoleDetail: React.FC<RoleDetailProps> = ({ roleId, onBack, onUpdate }) => {
   const { showSuccess, showError } = useToast();
   const [loading, setLoading] = useState(true);
   const [roleDetail, setRoleDetail] = useState<RoleDetailResponse | null>(null);
@@ -79,6 +80,8 @@ const RoleDetail: React.FC<RoleDetailProps> = ({ roleId, onBack }) => {
         showSuccess('角色成员更新成功');
         // 重新加载角色详情
         await fetchRoleDetail();
+        // 通知父组件刷新列表
+        onUpdate?.();
       } else {
         showError('更新角色成员失败', response.message);
       }
@@ -100,6 +103,8 @@ const RoleDetail: React.FC<RoleDetailProps> = ({ roleId, onBack }) => {
       if (response.statusCode === 200) {
         showSuccess('菜单权限更新成功');
         await fetchRoleDetail();
+        // 通知父组件刷新列表
+        onUpdate?.();
       } else {
         showError(response.message || '更新菜单失败');
       }

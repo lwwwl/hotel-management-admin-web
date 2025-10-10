@@ -16,7 +16,7 @@ interface Role {
   id: number;
   name: string;
   description: string;
-  userCount: number;
+  memberCount: number;
   createTime: number;
   updateTime: number;
 }
@@ -68,7 +68,7 @@ const RoleManagement = () => {
           id: role.roleId,
           name: role.name,
           description: role.description || '',
-          userCount: 0, // 暂时设为0，后续可以从详情接口获取
+          memberCount: role.memberCount ?? 0,
           createTime: role.createTime,
           updateTime: role.updateTime
         }));
@@ -319,9 +319,10 @@ const RoleManagement = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {new Date(role.createTime).toLocaleDateString()}
-                      </span>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Users size={16} className="mr-1.5 text-gray-400" />
+                        <span>{role.memberCount} 位成员</span>
+                      </div>
                       <button
                         onClick={() => viewRoleDetail(role)}
                         className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -341,7 +342,8 @@ const RoleManagement = () => {
           <div className="h-full overflow-y-auto p-6">
             <RoleDetail 
               roleId={selectedRole.roleId} 
-              onBack={() => setActiveTab('list')} 
+              onBack={() => setActiveTab('list')}
+              onUpdate={loadRoles}
             />
           </div>
         )}

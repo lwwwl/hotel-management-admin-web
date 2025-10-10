@@ -136,6 +136,7 @@ export interface RoleInfo {
   roleId: number;
   name: string;
   description?: string;
+  memberCount?: number;
   createTime: number;
   updateTime: number;
 }

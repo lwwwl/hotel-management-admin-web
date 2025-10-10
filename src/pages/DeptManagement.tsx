@@ -247,6 +247,7 @@ const DeptManagement = () => {
       if (response.statusCode === 200 && response.data) {
         showSuccess(`成功添加 ${availableUsers.length} 名成员`);
         loadDeptDetail(selectedDept.deptId); // 重新加载部门详情
+        loadDepartments(); // 刷新部门列表以更新成员数量
       } else {
         showError('添加成员失败', response.message);
       }
@@ -274,6 +275,7 @@ const DeptManagement = () => {
       if (response.statusCode === 200 && response.data) {
         showSuccess('成员移除成功');
         loadDeptDetail(selectedDept.deptId); // 重新加载部门详情
+        loadDepartments(); // 刷新部门列表以更新成员数量
       } else {
         showError('移除成员失败', response.message);
       }
